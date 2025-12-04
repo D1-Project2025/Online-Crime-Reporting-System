@@ -19,7 +19,7 @@ export default function Home() {
             <div className="inline-block mb-6">
               <Shield className="w-20 h-20 text-[#FF6A3D] mx-auto animate-pulse" />
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-2 leading-tight">
               YOUR SAFETY, OUR PRIORITY.<br />REPORT CRIME ONLINE.
             </h1>
             <p className="text-gray-200 text-lg mb-10 max-w-3xl mx-auto leading-relaxed">
