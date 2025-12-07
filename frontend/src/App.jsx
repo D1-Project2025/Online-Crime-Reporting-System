@@ -6,6 +6,9 @@ import UserSignUp from './pages/UserSignUp';
 import AddWitness from "./pages/AddWitness";
 import AdminDashboard from "./pages/AdminDashboard"
 import AdminCaseDetails from "./pages/AdminCaseDetails";
+import AuthorityDashboard from './pages/AuthorityDashboard';
+import AuthorityCaseDetails from "./pages/AuthorityCaseDetails";
+
 
 
 function App() {
@@ -18,6 +21,8 @@ function App() {
         <Route path="/add-witness" element={<AddWitness />} />
         <Route path="/admin/case/:id" element={<AdminCaseDetails />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/authority/dashboard" element={<AuthorityDashboard/>} />
+        <Route path="/authority/case" element={<AuthorityCaseDetails/>} />
       </Routes>
     </>
   );
