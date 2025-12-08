@@ -8,6 +8,8 @@ import AdminDashboard from "./pages/AdminDashboard"
 import AdminCaseDetails from "./pages/AdminCaseDetails";
 import AuthorityDashboard from './pages/AuthorityDashboard';
 import AuthorityCaseDetails from "./pages/AuthorityCaseDetails";
+import FileFIR from "./pages/FileFIR";
+import TrackStatus from "./pages/TrackStatus";
 
 
 
@@ -18,6 +20,8 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/signup" element={<UserSignUp />} />
         <Route path="/signin" element={<UserSignIn />} />
+        <Route path="/file-fir" element={<FileFIR/>} />
+        <Route path="/track-status" element={<TrackStatus/>} />
         <Route path="/add-witness" element={<AddWitness />} />
         <Route path="/admin/case/:id" element={<AdminCaseDetails />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />

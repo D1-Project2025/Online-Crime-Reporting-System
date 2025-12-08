@@ -8,7 +8,7 @@ export default function UserSignIn() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    navigate('/home');
+    navigate('/');
   };
 
   return (
