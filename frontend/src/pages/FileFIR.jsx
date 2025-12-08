@@ -10,7 +10,7 @@ export default function FileFIR() {
   const navigate = useNavigate();
 
   const navLinks = [
-    { path: '/home', label: 'HOME' },
+    { path: '/', label: 'HOME' },
     { path: '/file-fir', label: 'FILE FIR', active: true },
     { path: '/missing-report', label: 'MISSING REPORT' },
     { path: '/track-status', label: 'TRACK STATUS' }

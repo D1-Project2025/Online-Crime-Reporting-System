@@ -8,7 +8,7 @@ export default function AddWitness() {
   const navigate = useNavigate();
 
   const navLinks = [
-    { path: '/home', label: 'HOME' },
+    { path: '/', label: 'HOME' },
     { path: '/file-fir', label: 'FILE FIR' },
     { path: '/missing-report', label: 'MISSING REPORT' },
     { path: '/track-status', label: 'TRACK STATUS' }

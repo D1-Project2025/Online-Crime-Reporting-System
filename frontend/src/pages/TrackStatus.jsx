@@ -6,7 +6,7 @@ import Button from '../components/Button';
 
 export default function TrackStatus() {
   const navLinks = [
-    { path: '/home', label: 'HOME' },
+    { path: '/', label: 'HOME' },
     { path: '/file-fir', label: 'FILE FIR' },
     { path: '/missing-report', label: 'MISSING REPORT' },
     { path: '/track-status', label: 'TRACK STATUS', active: true }
@@ -67,7 +67,7 @@ export default function TrackStatus() {
             <p className="text-[#6D7A86] mb-6 text-lg">
               Your case is currently being processed. You will be notified of any updates.
             </p>
-            <Link to="/home">
+            <Link to="/">
               <Button variant="navy">Back to Home</Button>
             </Link>
           </div>
