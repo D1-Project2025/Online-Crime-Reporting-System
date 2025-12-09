@@ -3,7 +3,7 @@ import { Shield, Phone, FileText, Mail } from 'lucide-react';
 
 export default function Footer() {
   return (
-    <footer className="bg-gradient-to-r from-[#0A2A43] to-[#1a3a53] text-white mt-16">
+    <footer className="bg-linear-to-r from-[#0A2A43] to-[#1a3a53] text-white mt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid md:grid-cols-3 gap-8 mb-8">
           <div>

@@ -20,7 +20,7 @@ export default function AuthorityCaseDetails() {
             CASE DETAILS - #{id}
           </h1>
 
-          <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-8 mb-8 min-h-[400px] border border-gray-200">
+          <div className="bg-linear-to-br from-gray-50 to-white rounded-xl p-8 mb-8 min-h-[400px] border border-gray-200">
             <h2 className="text-xl font-bold text-[#0A2A43] mb-4">Case Information</h2>
             <div className="space-y-4 text-[#6D7A86]">
               <p><span className="font-semibold text-[#0A2A43]">Case ID:</span> #{id}</p>
@@ -37,7 +37,7 @@ export default function AuthorityCaseDetails() {
           <div className="flex flex-wrap gap-4 justify-center">
             <Button variant="primary">Update Case</Button>
             <Button variant="navy">Close Case</Button>
-            <Button variant="danger">Delete Case</Button>
+            {/* <Button variant="danger">Delete Case</Button> */}
           </div>
         </Card>
       </div>
