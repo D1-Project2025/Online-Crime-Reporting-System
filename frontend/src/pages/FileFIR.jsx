@@ -14,7 +14,7 @@ export default function FileFIR() {
     { path: '/file-fir', label: 'FILE FIR', active: true },
     { path: '/missing-report', label: 'MISSING REPORT' },
     { path: '/track-status', label: 'TRACK STATUS' }
-  ];
+  ]; 
 
   const handleSubmit = (e) => {
     e.preventDefault();
