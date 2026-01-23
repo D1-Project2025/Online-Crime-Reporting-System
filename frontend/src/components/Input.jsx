@@ -1,30 +1,26 @@
-export default function Input({
-  label,
-  type = 'text',
-  placeholder = '',
-  value,
-  onChange,
-  required = false,
-  className = '',
-  ...props
-}) {
-  return (
-    <div className={className}>
-      {label && (
-        <label className="block text-sm font-medium text-[#0A2A43] mb-2">
-          {label}
-          {required && <span className="text-[#FF6A3D] ml-1">*</span>}
-        </label>
-      )}
-      <input
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={onChange}
-        required={required}
-        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#FF6A3D] focus:border-transparent focus:bg-white transition-all"
-        {...props}
-      />
-    </div>
-  );
+const Input = ({
+        label,
+        error,
+        className = '',
+        ...props
+}) => {
+        return (
+                <div className="space-y-1">
+                        {label && (
+                                <label className="block text-sm font-medium text-gray-700">
+                                        {label}
+                                </label>
+                        )}
+                        <input
+                                className={`w-full px-4 py-3 rounded-xl border ${error ? 'border-danger-500 focus:ring-danger-500' : 'border-gray-200 focus:ring-primary-500'
+                                        } focus:outline-none focus:ring-2 focus:border-transparent transition-all bg-white ${className}`}
+                                {...props}
+                        />
+                        {error && (
+                                <p className="text-sm text-danger-500">{error}</p>
+                        )}
+                </div>
+        )
 }
+
+export default Input
