@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { ToastProvider } from './components/Toast'
 
 // Auth Pages - Role-specific
 import UserSignIn from './pages/auth/user/UserSignIn'
@@ -15,7 +16,6 @@ import TrackStatus from './pages/user/TrackStatus'
 
 // Authority Pages
 import AuthorityDashboard from './pages/authority/Dashboard'
-import AuthorityAnalytics from './pages/authority/Analytics'
 
 // Admin Pages
 import AdminDashboard from './pages/admin/Dashboard'
@@ -25,6 +25,14 @@ import Analytics from './pages/admin/Analytics'
 import Navbar from './components/Navbar'
 import ProtectedRoute from './components/ProtectedRoute'
 
+/**
+ * Render the application's routing structure and conditionally display the navigation bar based on authentication state.
+ *
+ * Renders role-specific authentication routes, legacy redirects, protected routes for USER, AUTHORITY, and ADMIN roles,
+ * and default/fallback redirects. The Navbar is shown only when a user is authenticated.
+ *
+ * @returns {JSX.Element} A JSX element containing the app Routes and conditional layout.
+ */
 function AppRoutes() {
         const { user } = useAuth()
 
@@ -69,11 +77,7 @@ function AppRoutes() {
                                                 <AuthorityDashboard />
                                         </ProtectedRoute>
                                 } />
-                                <Route path="/authority/analytics" element={
-                                        <ProtectedRoute roles={['AUTHORITY']}>
-                                                <AuthorityAnalytics />
-                                        </ProtectedRoute>
-                                } />
+
 
                                 {/* Admin Routes */}
                                 <Route path="/admin" element={
@@ -95,10 +99,16 @@ function AppRoutes() {
         )
 }
 
+/**
+ * Root application component that provides authentication and toast context and renders the application's routing structure.
+ * @returns {JSX.Element} The application element wrapped with AuthProvider and ToastProvider, containing AppRoutes.
+ */
 function App() {
         return (
                 <AuthProvider>
-                        <AppRoutes />
+                        <ToastProvider>
+                                <AppRoutes />
+                        </ToastProvider>
                 </AuthProvider>
         )
 }
