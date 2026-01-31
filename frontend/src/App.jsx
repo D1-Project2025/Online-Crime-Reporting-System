@@ -25,6 +25,14 @@ import Analytics from './pages/admin/Analytics'
 import Navbar from './components/Navbar'
 import ProtectedRoute from './components/ProtectedRoute'
 
+/**
+ * Render the application's routing structure and conditionally display the navigation bar based on authentication state.
+ *
+ * Renders role-specific authentication routes, legacy redirects, protected routes for USER, AUTHORITY, and ADMIN roles,
+ * and default/fallback redirects. The Navbar is shown only when a user is authenticated.
+ *
+ * @returns {JSX.Element} A JSX element containing the app Routes and conditional layout.
+ */
 function AppRoutes() {
         const { user } = useAuth()
 
@@ -91,6 +99,10 @@ function AppRoutes() {
         )
 }
 
+/**
+ * Root application component that provides authentication and toast context and renders the application's routing structure.
+ * @returns {JSX.Element} The application element wrapped with AuthProvider and ToastProvider, containing AppRoutes.
+ */
 function App() {
         return (
                 <AuthProvider>
