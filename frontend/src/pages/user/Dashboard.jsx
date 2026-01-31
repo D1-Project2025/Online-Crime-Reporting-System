@@ -88,7 +88,7 @@ const Dashboard = () => {
                                 </Card>
                                 <Card className="text-center">
                                         <p className="text-3xl font-bold text-yellow-600">
-                                                {stats.firs.filter(f => f.status === 'PENDING' || f.status === 'ASSIGNED').length}
+                                                {stats.firs.filter(f => f.status === 'PENDING').length}
                                         </p>
                                         <p className="text-sm text-gray-500">Pending FIRs</p>
                                 </Card>
@@ -106,7 +106,7 @@ const Dashboard = () => {
 
                         {/* Recent FIRs */}
                         <Card className="mb-6">
-                                <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent FIRs</h2>
+                                <h2 className="text-lg font-semibold text-gray-900 mb-4">Your FIRs</h2>
                                 {loading ? (
                                         <p className="text-gray-500">Loading...</p>
                                 ) : stats.firs.length === 0 ? (
@@ -124,7 +124,7 @@ const Dashboard = () => {
                                                                 </tr>
                                                         </thead>
                                                         <tbody>
-                                                                {stats.firs.slice(0, 5).map((fir) => (
+                                                                {stats.firs.map((fir) => (
                                                                         <tr key={fir.id} className="border-b last:border-0 cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => { setSelectedFir(fir); setShowModal(true); }}>
                                                                                 <td className="py-3 font-medium text-primary-600">{fir.firNumber}</td>
                                                                                 <td className="py-3">{fir.title}</td>
@@ -145,7 +145,7 @@ const Dashboard = () => {
 
                         {/* Recent Missing Reports */}
                         <Card>
-                                <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Missing Person Reports</h2>
+                                <h2 className="text-lg font-semibold text-gray-900 mb-4">Your Missing Person Reports</h2>
                                 {loading ? (
                                         <p className="text-gray-500">Loading...</p>
                                 ) : stats.missing.length === 0 ? (
@@ -163,7 +163,7 @@ const Dashboard = () => {
                                                                 </tr>
                                                         </thead>
                                                         <tbody>
-                                                                {stats.missing.slice(0, 5).map((report) => (
+                                                                {stats.missing.map((report) => (
                                                                         <tr key={report.id} className="border-b last:border-0 cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => { setSelectedMissing(report); setShowMissingModal(true); }}>
                                                                                 <td className="py-3 font-medium text-primary-600">{report.caseNumber}</td>
                                                                                 <td className="py-3">{report.missingPersonName}</td>
