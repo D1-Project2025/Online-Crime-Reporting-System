@@ -29,7 +29,7 @@ public class LoggingClient {
                 logAuthEvent(eventType, userId, reference, null, null);
         }
 
-        // enhanced auth event logging with user details
+        // Enhanced auth event logging with user details
         public void logAuthEvent(String eventType, Long userId, String reference, String userName, String userEmail) {
                 try {
                         Map<String, Object> payload = new HashMap<>();
@@ -45,7 +45,7 @@ public class LoggingClient {
                                 payload.put("userEmail", userEmail);
                         }
 
-                        // build a descriptive message
+                        // Build a descriptive message
                         String message = buildLogMessage(eventType, userId, userName, userEmail, reference);
                         if (message != null) {
                                 payload.put("message", message);
@@ -65,7 +65,7 @@ public class LoggingClient {
                 }
         }
 
-        // build descriptive log message based on event type
+        // Build descriptive log message based on event type
         private String buildLogMessage(String eventType, Long userId, String userName, String userEmail,
                         String reference) {
                 StringBuilder sb = new StringBuilder();
