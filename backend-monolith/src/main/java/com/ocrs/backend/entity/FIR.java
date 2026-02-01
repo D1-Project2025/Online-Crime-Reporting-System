@@ -63,12 +63,20 @@ public class FIR {
         @Column(name = "updated_at")
         private LocalDateTime updatedAt;
 
+        /**
+         * Populate the creation and last-modified timestamps with the current date-time before the entity is persisted.
+         *
+         * This JPA lifecycle callback sets both `createdAt` and `updatedAt` to the current `LocalDateTime`.
+         */
         @PrePersist
         protected void onCreate() {
                 createdAt = LocalDateTime.now();
                 updatedAt = LocalDateTime.now();
         }
 
+        /**
+         * Sets the entity's updatedAt timestamp to the current date and time before the entity is updated.
+         */
         @PreUpdate
         protected void onUpdate() {
                 updatedAt = LocalDateTime.now();
