@@ -39,7 +39,10 @@ public class FIRService {
         private ExternalServiceClient externalServiceClient;
 
         /**
-         * helper method to get user's email from Auth service via Feign
+         * Retrieve the email address for a user by their user ID.
+         *
+         * @param userId the ID of the user to look up
+         * @return the user's email if found; `null` if the userId is null, the user is not found, or an error occurs while fetching
          */
         private String getUserEmail(Long userId) {
                 if (userId == null) {
@@ -57,7 +60,13 @@ public class FIRService {
         }
 
         /**
-         * helper method to get authority name from Auth service via Feign
+         * Retrieve the full name of an authority from the Auth service.
+         *
+         * Attempts to fetch the authority's full name; if `authorityId` is null returns `null`,
+         * and if the remote lookup fails or yields no data returns the fallback string "Authority #<id>".
+         *
+         * @param authorityId the authority's identifier
+         * @return the authority's full name, `"Authority #<id>"` on lookup failure, or `null` if `authorityId` is null
          */
         private String getAuthorityName(Long authorityId) {
                 if (authorityId == null) {
@@ -75,7 +84,10 @@ public class FIRService {
         }
 
         /**
-         * helper method to check if authority exists via Feign
+         * Determine whether an authority with the given ID exists.
+         *
+         * @param authorityId the authority's ID; if null the method returns `false`
+         * @return `true` if an authority with the given ID exists, `false` otherwise (returns `false` on remote call failure)
          */
         private boolean authorityExists(Long authorityId) {
                 if (authorityId == null) {
@@ -91,8 +103,13 @@ public class FIRService {
         }
 
         /**
-         * determine priority based on crime category using rule-based mapping.
-         * this replaces user-selected priority to prevent bias toward HIGH selections.
+         * Determine FIR priority from the crime category using a fixed rule-based mapping.
+         *
+         * This enforces server-side priority assignment and overrides any user-selected priority
+         * to avoid bias toward higher urgency selections.
+         *
+         * @param category the crime category to evaluate
+         * @return the corresponding FIR.Priority for the provided category (ASSAULT → URGENT; HARASSMENT, CYBERCRIME → HIGH; FRAUD, THEFT, OTHER → MEDIUM; VANDALISM → LOW)
          */
         private FIR.Priority determinePriority(FIR.Category category) {
                 return switch (category) {
@@ -106,6 +123,15 @@ public class FIRService {
                 };
         }
 
+        /**
+         * Create and persist a new FIR, auto-assign it to the least-loaded authority, determine priority from the category, and notify external services about the filed FIR.
+         *
+         * The created FIR will have a generated FIR number and a status of PENDING. If an authority is available the FIR will be assigned to it; otherwise it will remain unassigned. On failure this method returns an error ApiResponse containing a descriptive message.
+         *
+         * @param userId the ID of the user filing the FIR
+         * @param request the FIRRequest containing title, description, category, incident details, and evidence URLs
+         * @return an ApiResponse containing the created FIR on success, or an error ApiResponse with a descriptive message on failure
+         */
         @Transactional
         public ApiResponse<FIR> fileFIR(Long userId, FIRRequest request) {
                 try {
@@ -164,8 +190,9 @@ public class FIRService {
         }
 
         /**
-         * find the authority with the least number of active (non-resolved) cases.
-         * uses load balancing to distribute FIRs evenly across authorities.
+         * Selects the authority with the fewest active (non-closed) FIR cases for auto-assignment.
+         *
+         * @return the authority ID with the fewest active cases, or `null` if no active authorities are available or an error occurs
          */
         private Long findLeastLoadedAuthority() {
                 try {
@@ -206,30 +233,71 @@ public class FIRService {
                 }
         }
 
+        /**
+         * Fetches all FIR records filed by the specified user.
+         *
+         * @param userId the identifier of the user whose FIRs are requested
+         * @return a list of FIRs filed by the user; an empty list if none are found
+         */
         public List<FIR> getFIRsByUser(Long userId) {
                 return firRepository.findByUserId(userId);
         }
 
+        /**
+         * Retrieve all FIR records assigned to a specific authority.
+         *
+         * @param authorityId the authority's identifier to filter FIRs by
+         * @return a list of FIRs assigned to the specified authority; empty list if none are found
+         */
         public List<FIR> getFIRsByAuthority(Long authorityId) {
                 return firRepository.findByAuthorityId(authorityId);
         }
 
+        /**
+         * Retrieve a page of FIRs assigned to a specific authority.
+         *
+         * @param authorityId the ID of the authority whose FIRs to retrieve
+         * @param pageable    pagination and sorting parameters
+         * @return            a page of FIRs assigned to the given authority (empty if none)
+         */
         public Page<FIR> getFIRsByAuthorityPaged(Long authorityId, Pageable pageable) {
                 return firRepository.findByAuthorityId(authorityId, pageable);
         }
 
+        /**
+         * Retrieve a FIR by its database identifier.
+         *
+         * @param id the primary key of the FIR to fetch
+         * @return an ApiResponse containing the FIR when found; an error ApiResponse with message "FIR not found" otherwise
+         */
         public ApiResponse<FIR> getFIRById(Long id) {
                 return firRepository.findById(id)
                                 .map(fir -> ApiResponse.success("FIR found", fir))
                                 .orElse(ApiResponse.error("FIR not found"));
         }
 
+        /**
+         * Retrieve a FIR by its FIR number.
+         *
+         * @param firNumber the FIR number to search for
+         * @return an ApiResponse containing the FIR when found; otherwise an error ApiResponse with message "FIR not found"
+         */
         public ApiResponse<FIR> getFIRByNumber(String firNumber) {
                 return firRepository.findByFirNumber(firNumber)
                                 .map(fir -> ApiResponse.success("FIR found", fir))
                                 .orElse(ApiResponse.error("FIR not found"));
         }
 
+        /**
+         * Update the status of a FIR and record the change as an Update performed by the assigned authority.
+         *
+         * Creates and persists an Update record, notifies the FIR owner, and logs an event when the update is applied.
+         *
+         * @param firId      the database ID of the FIR to update
+         * @param authorityId the ID of the authority performing the update; must match the FIR's assigned authority
+         * @param request    the update payload containing the new status, update type, and an optional comment
+         * @return           an ApiResponse containing the updated FIR on success; an error ApiResponse with a descriptive message if the FIR is not found, the authority is not authorized, or the FIR is closed
+         */
         @Transactional
         public ApiResponse<FIR> updateFIRStatus(Long firId, Long authorityId, UpdateRequest request) {
                 FIR fir = firRepository.findById(firId).orElse(null);
@@ -297,19 +365,53 @@ public class FIRService {
                 return ApiResponse.success("FIR updated successfully", fir);
         }
 
+        /**
+         * Retrieves the update history for the specified FIR, ordered from newest to oldest.
+         *
+         * @param firId the FIR identifier whose updates to retrieve
+         * @return a list of Update records for the FIR ordered by `createdAt` descending
+         */
         public List<Update> getFIRUpdates(Long firId) {
                 return updateRepository.findByFirIdOrderByCreatedAtDesc(firId);
         }
 
+        /**
+         * Searches FIRs assigned to the given authority using optional text and enum filters, returning a paged result.
+         *
+         * @param authorityId the authority's ID to limit the search to
+         * @param search      optional text to match against FIR fields such as title or description
+         * @param category    optional category filter
+         * @param priority    optional priority filter
+         * @param status      optional status filter
+         * @param pageable    pagination and sorting information
+         * @return            a page of FIRs that match the provided filters
+         */
         public Page<FIR> searchFIRsByAuthority(Long authorityId, String search, FIR.Category category,
                         FIR.Priority priority, FIR.Status status, Pageable pageable) {
                 return firRepository.searchByAuthority(authorityId, search, category, priority, status, pageable);
         }
 
+        /**
+         * Retrieve all FIR records.
+         *
+         * @return a list of all FIR entities, or an empty list if none exist
+         */
         public List<FIR> getAllFIRs() {
                 return firRepository.findAll();
         }
 
+        /**
+         * Reassigns an existing FIR to a different authority, records the reassignment as an Update,
+         * notifies the FIR's user by email, and logs the reassignment event.
+         *
+         * This operation validates the FIR and the target authority, prevents reassignment to the
+         * same authority, updates and persists the FIR's authority, creates an Update record describing
+         * the reassignment, sends an email notification to the FIR owner, and emits a log event.
+         *
+         * @param firId         the database identifier of the FIR to reassign
+         * @param newAuthorityId the identifier of the authority to assign the FIR to
+         * @return               an ApiResponse containing the updated FIR on success, or an error message on failure
+         */
         @Transactional
         public ApiResponse<FIR> reassignFIR(Long firId, Long newAuthorityId) {
                 FIR fir = firRepository.findById(firId).orElse(null);

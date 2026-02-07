@@ -40,11 +40,11 @@ public class UserController {
         // ==================== FIR Endpoints ====================
 
         /**
-         * File a new FIR (First Information Report).
-         * 
-         * @param request     FIR details
-         * @param httpRequest HTTP request containing user identity
-         * @return Created FIR with success/error response
+         * Create a new FIR for the authenticated user.
+         *
+         * @param request     FIR details to file
+         * @param httpRequest HTTP request whose "userId" attribute identifies the requesting user
+         * @return an ApiResponse containing the created FIR on success or error details on failure
          */
         @PostMapping("/fir")
         @PreAuthorize("hasRole('USER')")
@@ -57,7 +57,10 @@ public class UserController {
         }
 
         /**
-         * Get all FIRs filed by the current user.
+         * Retrieve all FIRs filed by the authenticated user.
+         *
+         * @param httpRequest the HTTP request containing the authenticated user's id in the "userId" attribute
+         * @return a list of FIRs belonging to the authenticated user
          */
         @GetMapping("/firs")
         @PreAuthorize("hasRole('USER')")
@@ -67,8 +70,10 @@ public class UserController {
         }
 
         /**
-         * Get a specific FIR by ID.
-         * Note: Consider adding ownership validation for production systems.
+         * Retrieve an FIR by its identifier.
+         *
+         * @param id the FIR's unique identifier
+         * @return an ApiResponse containing the FIR when found; the response indicates success or failure
          */
         @GetMapping("/fir/{id}")
         @PreAuthorize("hasRole('USER')")
@@ -77,7 +82,10 @@ public class UserController {
         }
 
         /**
-         * Get a specific FIR by FIR number.
+         * Retrieves the FIR identified by its FIR number.
+         *
+         * @param firNumber the FIR's unique case number
+         * @return an ApiResponse containing the FIR matching the provided FIR number
          */
         @GetMapping("/fir/number/{firNumber}")
         @PreAuthorize("hasRole('USER')")
@@ -86,7 +94,10 @@ public class UserController {
         }
 
         /**
-         * Get status updates for a specific FIR.
+         * Retrieve status updates for the specified FIR.
+         *
+         * @param firId the identifier of the FIR
+         * @return the list of status updates for the specified FIR
          */
         @GetMapping("/fir/{firId}/updates")
         @PreAuthorize("hasRole('USER')")
@@ -97,7 +108,11 @@ public class UserController {
         // ==================== Missing Person Endpoints ====================
 
         /**
-         * File a new Missing Person report.
+         * Create a missing person report for the authenticated user.
+         *
+         * @param request     the payload containing missing person report details
+         * @param httpRequest the incoming HTTP request; expects the authenticated user's id in the "userId" request attribute
+         * @return            a ResponseEntity whose body is an ApiResponse containing the created MissingPerson on success (HTTP 200) or error details on failure (HTTP 400)
          */
         @PostMapping("/missing")
         @PreAuthorize("hasRole('USER')")
@@ -110,7 +125,10 @@ public class UserController {
         }
 
         /**
-         * Get all Missing Person reports filed by the current user.
+         * Retrieves all missing-person reports filed by the current authenticated user.
+         *
+         * @param httpRequest the HTTP request containing the "userId" request attribute used to identify the user
+         * @return a list of MissingPerson reports filed by the user
          */
         @GetMapping("/missing-reports")
         @PreAuthorize("hasRole('USER')")
@@ -120,7 +138,10 @@ public class UserController {
         }
 
         /**
-         * Get a specific Missing Person report by ID.
+         * Retrieve a Missing Person report by its ID.
+         *
+         * @param id the ID of the missing person report
+         * @return an ApiResponse containing the requested MissingPerson; `success` will be `true` when the report is found
          */
         @GetMapping("/missing/{id}")
         @PreAuthorize("hasRole('USER')")
@@ -129,7 +150,10 @@ public class UserController {
         }
 
         /**
-         * Get a specific Missing Person report by case number.
+         * Retrieve a missing person report by its case number.
+         *
+         * @param caseNumber the case number that identifies the missing person report
+         * @return an ApiResponse containing the matching MissingPerson report and status metadata
          */
         @GetMapping("/missing/number/{caseNumber}")
         @PreAuthorize("hasRole('USER')")
@@ -138,7 +162,10 @@ public class UserController {
         }
 
         /**
-         * Get status updates for a specific Missing Person report.
+         * Retrieve status updates for the specified missing person report.
+         *
+         * @param reportId the identifier of the missing person report
+         * @return a list of status updates for the report; empty list if there are none
          */
         @GetMapping("/missing/{reportId}/updates")
         @PreAuthorize("hasRole('USER')")

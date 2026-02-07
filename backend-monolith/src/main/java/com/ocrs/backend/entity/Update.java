@@ -41,6 +41,9 @@ public class Update {
         @Column(name = "created_at")
         private LocalDateTime createdAt;
 
+        /**
+         * Sets the createdAt timestamp to the current LocalDateTime before the entity is persisted.
+         */
         @PrePersist
         protected void onCreate() {
                 createdAt = LocalDateTime.now();

@@ -56,7 +56,9 @@ public class AdminController {
         // ==================== Analytics ====================
 
         /**
-         * Get system-wide analytics including FIR and Missing Person statistics.
+         * Retrieve system-wide analytics for FIRs and missing person reports.
+         *
+         * @return the analytics response containing aggregated FIR and missing-person statistics
          */
         @GetMapping("/analytics")
         @PreAuthorize("hasRole('ADMIN')")
@@ -67,8 +69,9 @@ public class AdminController {
         // ==================== FIR Management ====================
 
         /**
-         * Get all FIRs in the system.
-         * Admin-only endpoint for oversight and management.
+         * Retrieve all FIR records.
+         *
+         * @return a list containing all FIRs
          */
         @GetMapping("/firs")
         @PreAuthorize("hasRole('ADMIN')")
@@ -77,7 +80,10 @@ public class AdminController {
         }
 
         /**
-         * Get a specific FIR by ID.
+         * Retrieve a FIR by its identifier.
+         *
+         * @param id the FIR identifier
+         * @return an ApiResponse containing the requested FIR and response metadata
          */
         @GetMapping("/fir/{id}")
         @PreAuthorize("hasRole('ADMIN')")
@@ -86,8 +92,11 @@ public class AdminController {
         }
 
         /**
-         * Reassign a FIR to a different authority.
-         * Used for workload balancing or when an authority is unavailable.
+         * Reassigns an existing FIR to a different authority.
+         *
+         * @param firId       the ID of the FIR to reassign
+         * @param authorityId the ID of the authority to assign the FIR to
+         * @return a ResponseEntity containing an ApiResponse<FIR>; on success the ApiResponse contains the reassigned FIR and the response is HTTP 200, on failure the ApiResponse contains error details and the response is HTTP 400
          */
         @PutMapping("/fir/{firId}/reassign/{authorityId}")
         @PreAuthorize("hasRole('ADMIN')")
@@ -101,7 +110,9 @@ public class AdminController {
         // ==================== Missing Person Management ====================
 
         /**
-         * Get all Missing Person reports in the system.
+         * Retrieves all missing person reports.
+         *
+         * @return a list of all MissingPerson reports in the system
          */
         @GetMapping("/missing-reports")
         @PreAuthorize("hasRole('ADMIN')")
@@ -110,7 +121,10 @@ public class AdminController {
         }
 
         /**
-         * Get a specific Missing Person report by ID.
+         * Retrieve a MissingPerson report by its identifier.
+         *
+         * @param id the identifier of the missing person report to fetch
+         * @return the ApiResponse wrapping the requested MissingPerson
          */
         @GetMapping("/missing/{id}")
         @PreAuthorize("hasRole('ADMIN')")
@@ -119,7 +133,11 @@ public class AdminController {
         }
 
         /**
-         * Reassign a Missing Person report to a different authority.
+         * Reassigns a missing person report to the authority identified by {@code authorityId}.
+         *
+         * @param reportId    the ID of the missing person report to reassign
+         * @param authorityId the ID of the authority to assign the report to
+         * @return an ApiResponse containing the updated MissingPerson when successful, or an ApiResponse with error details otherwise
          */
         @PutMapping("/missing/{reportId}/reassign/{authorityId}")
         @PreAuthorize("hasRole('ADMIN')")
@@ -133,8 +151,12 @@ public class AdminController {
         // ==================== Authority Management (Read-Only) ====================
 
         /**
-         * Get all authorities from Auth Service via Feign.
-         * Read-only operation - modifications should go through Auth Service directly.
+         * Retrieve all authorities from the Auth Service.
+         *
+         * On success returns an ApiResponse wrapping the list of AuthorityDTOs. If the Auth Service call fails,
+         * returns an error ApiResponse with the message "Failed to fetch authorities".
+         *
+         * @return ApiResponse containing the list of AuthorityDTO on success, or an error ApiResponse on failure.
          */
         @GetMapping("/authorities")
         @PreAuthorize("hasRole('ADMIN')")
@@ -149,8 +171,11 @@ public class AdminController {
         }
 
         /**
-         * Get all active authorities from Auth Service.
-         * Useful for assignment operations.
+         * Retrieve active authorities from the Auth Service.
+         *
+         * Typically used when assigning cases to authorities.
+         *
+         * @return an ApiResponse containing the list of active AuthorityDTO objects, or an error ApiResponse if retrieval fails
          */
         @GetMapping("/authorities/active")
         @PreAuthorize("hasRole('ADMIN')")
@@ -165,7 +190,10 @@ public class AdminController {
         }
 
         /**
-         * Get a specific authority by ID from Auth Service.
+         * Fetches an authority by its ID from the Auth Service.
+         *
+         * @param id the authority's unique identifier
+         * @return an ApiResponse containing the AuthorityDTO when the fetch succeeds; an ApiResponse with an error message otherwise
          */
         @GetMapping("/authority/{id}")
         @PreAuthorize("hasRole('ADMIN')")
@@ -196,7 +224,12 @@ public class AdminController {
         }
 
         /**
-         * @deprecated Authority updates should be done via Auth Service directly.
+         * Rejects requests to modify an authority and directs callers to use the Auth Service.
+         *
+         * @param id      the identifier of the authority requested to be updated
+         * @param request the update payload (ignored; updates are not allowed here)
+         * @return        a 400 Bad Request ResponseEntity containing an error ApiResponse stating that authority updates must be performed via the Auth Service
+         * @deprecated Authority updates must be performed via the Auth Service (e.g., POST /api/auth/authority/register); this endpoint always rejects update attempts.
          */
         @PutMapping("/authority/{id}")
         @Deprecated
@@ -207,7 +240,11 @@ public class AdminController {
         }
 
         /**
-         * @deprecated Authority deletion should be done via Auth Service directly.
+         * Rejects requests to delete an authority and directs callers to the Auth Service for authority management.
+         *
+         * @param id the identifier of the authority to delete
+         * @return an ApiResponse with an error message indicating deletion must be performed via the Auth Service (returned with HTTP 400)
+         * @deprecated Authority deletion must be performed through the Auth Service API instead of this controller.
          */
         @DeleteMapping("/authority/{id}")
         @Deprecated

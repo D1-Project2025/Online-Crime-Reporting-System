@@ -19,7 +19,15 @@ public class GlobalExceptionHandler {
 
         private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-        // handles validation errors from @Valid annotations
+        /**
+         * Handle validation failures from @Valid-annotated controller inputs.
+         *
+         * Extracts field-level validation messages and responds with HTTP 400 containing
+         * an ApiResponse whose error message is the first validation error.
+         *
+         * @param ex the MethodArgumentNotValidException containing binding errors
+         * @return a ResponseEntity with status 400 and an ApiResponse describing the first validation error
+         */
         @ExceptionHandler(MethodArgumentNotValidException.class)
         public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationErrors(
                         MethodArgumentNotValidException ex) {
@@ -34,7 +42,12 @@ public class GlobalExceptionHandler {
                                 .body(ApiResponse.error("Validation failed: " + errors.values().iterator().next()));
         }
 
-        // handles resource not found exceptions
+        /**
+         * Handles ResourceNotFoundException and produces an HTTP 404 response with the exception message.
+         *
+         * @param ex the ResourceNotFoundException that triggered this handler
+         * @return a ResponseEntity with status 404 and an ApiResponse containing the exception's message
+         */
         @ExceptionHandler(ResourceNotFoundException.class)
         public ResponseEntity<ApiResponse<Object>> handleResourceNotFound(ResourceNotFoundException ex) {
                 logger.warn("resource not found: {}", ex.getMessage());
@@ -42,7 +55,12 @@ public class GlobalExceptionHandler {
                                 .body(ApiResponse.error(ex.getMessage()));
         }
 
-        // handles illegal argument exceptions
+        /**
+         * Handle IllegalArgumentException by responding with HTTP 400 Bad Request and the exception message.
+         *
+         * @param ex the IllegalArgumentException that triggered this handler
+         * @return a ResponseEntity containing an ApiResponse with the exception message and HTTP 400 status
+         */
         @ExceptionHandler(IllegalArgumentException.class)
         public ResponseEntity<ApiResponse<Object>> handleIllegalArgument(IllegalArgumentException ex) {
                 logger.warn("invalid argument: {}", ex.getMessage());
@@ -50,7 +68,12 @@ public class GlobalExceptionHandler {
                                 .body(ApiResponse.error(ex.getMessage()));
         }
 
-        // catches any unhandled exceptions for a clean response
+        /**
+         * Handle any uncaught exception and produce a standardized 500 Internal Server Error response.
+         *
+         * @param ex the uncaught exception that triggered this handler
+         * @return ResponseEntity containing an ApiResponse with a generic error message and HTTP 500 (Internal Server Error) status
+         */
         @ExceptionHandler(Exception.class)
         public ResponseEntity<ApiResponse<Object>> handleGenericException(Exception ex) {
                 logger.error("unexpected error: {}", ex.getMessage(), ex);
