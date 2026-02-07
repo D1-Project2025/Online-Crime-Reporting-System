@@ -14,9 +14,9 @@ import reactor.core.publisher.Mono;
 public class RateLimitConfig {
 
         /**
-         * Key resolver that uses client IP address for rate limiting.
-         * Falls back to "anonymous" if IP cannot be determined.
-         * Marked as @Primary to be the default KeyResolver for rate limiting.
+         * Resolves a rate-limiting key from the client's IP address.
+         *
+         * @return the client's IP address to use as the rate-limit key, or "anonymous" if the IP cannot be determined
          */
         @Bean
         @Primary
@@ -30,9 +30,11 @@ public class RateLimitConfig {
         }
 
         /**
-         * Alternative key resolver that uses user ID from JWT token.
-         *term
-          Useful for user-based rate limiting on authenticated routes.
+         * Creates a KeyResolver that uses the X-User-Id request header as the rate-limiting key.
+         *
+         * If the header is missing, the resolver uses the literal "anonymous".
+         *
+         * @return a KeyResolver that resolves the rate-limit key from the "X-User-Id" header or "anonymous" when absent
          */
         @Bean
         public KeyResolver userKeyResolver() {
