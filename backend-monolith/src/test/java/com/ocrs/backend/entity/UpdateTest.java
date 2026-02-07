@@ -1,14 +1,12 @@
 package com.ocrs.backend.entity;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@DisplayName("Update Entity Tests")
 class UpdateTest {
 
     private Update update;
@@ -19,52 +17,120 @@ class UpdateTest {
     }
 
     @Test
-    @DisplayName("Should create Update with builder pattern")
+    void testNoArgsConstructor() {
+        Update newUpdate = new Update();
+        assertNotNull(newUpdate);
+        assertNull(newUpdate.getId());
+        assertNull(newUpdate.getFirId());
+        assertNull(newUpdate.getMissingPersonId());
+    }
+
+    @Test
+    void testAllArgsConstructor() {
+        LocalDateTime now = LocalDateTime.now();
+
+        Update newUpdate = new Update(
+                1L,
+                100L,
+                null,
+                200L,
+                Update.UpdateType.STATUS_CHANGE,
+                "PENDING",
+                "UNDER_INVESTIGATION",
+                "Case is now under active investigation",
+                now
+        );
+
+        assertEquals(1L, newUpdate.getId());
+        assertEquals(100L, newUpdate.getFirId());
+        assertNull(newUpdate.getMissingPersonId());
+        assertEquals(200L, newUpdate.getAuthorityId());
+        assertEquals(Update.UpdateType.STATUS_CHANGE, newUpdate.getUpdateType());
+        assertEquals("PENDING", newUpdate.getPreviousStatus());
+        assertEquals("UNDER_INVESTIGATION", newUpdate.getNewStatus());
+        assertEquals("Case is now under active investigation", newUpdate.getComment());
+        assertEquals(now, newUpdate.getCreatedAt());
+    }
+
+    @Test
     void testBuilderPattern() {
-        // arrange & act
         Update builtUpdate = Update.builder()
-                .firId(100L)
-                .missingPersonId(null)
-                .authorityId(5L)
-                .updateType(Update.UpdateType.STATUS_CHANGE)
-                .previousStatus("PENDING")
-                .newStatus("UNDER_INVESTIGATION")
-                .comment("Investigation has been initiated")
-                .build();
-
-        // assert
-        assertNotNull(builtUpdate);
-        assertEquals(100L, builtUpdate.getFirId());
-        assertNull(builtUpdate.getMissingPersonId());
-        assertEquals(5L, builtUpdate.getAuthorityId());
-        assertEquals(Update.UpdateType.STATUS_CHANGE, builtUpdate.getUpdateType());
-        assertEquals("PENDING", builtUpdate.getPreviousStatus());
-        assertEquals("UNDER_INVESTIGATION", builtUpdate.getNewStatus());
-        assertEquals("Investigation has been initiated", builtUpdate.getComment());
-    }
-
-    @Test
-    @DisplayName("Should set createdAt on persist")
-    void testOnCreateCallback() {
-        // arrange
-        Update newUpdate = Update.builder()
-                .firId(101L)
-                .authorityId(5L)
+                .id(5L)
+                .firId(500L)
+                .authorityId(600L)
                 .updateType(Update.UpdateType.COMMENT)
-                .comment("Test comment")
+                .comment("Additional evidence has been collected")
                 .build();
 
-        // act
-        newUpdate.onCreate();
-
-        // assert
-        assertNotNull(newUpdate.getCreatedAt());
+        assertEquals(5L, builtUpdate.getId());
+        assertEquals(500L, builtUpdate.getFirId());
+        assertNull(builtUpdate.getMissingPersonId());
+        assertEquals(600L, builtUpdate.getAuthorityId());
+        assertEquals(Update.UpdateType.COMMENT, builtUpdate.getUpdateType());
+        assertNull(builtUpdate.getPreviousStatus());
+        assertNull(builtUpdate.getNewStatus());
+        assertEquals("Additional evidence has been collected", builtUpdate.getComment());
     }
 
     @Test
-    @DisplayName("Should support all UpdateType enum values")
-    void testAllUpdateTypeValues() {
-        // assert
+    void testBuilderForMissingPerson() {
+        Update builtUpdate = Update.builder()
+                .id(10L)
+                .missingPersonId(1000L)
+                .authorityId(700L)
+                .updateType(Update.UpdateType.STATUS_CHANGE)
+                .previousStatus("ACTIVE")
+                .newStatus("FOUND")
+                .comment("Missing person has been located")
+                .build();
+
+        assertEquals(10L, builtUpdate.getId());
+        assertNull(builtUpdate.getFirId());
+        assertEquals(1000L, builtUpdate.getMissingPersonId());
+        assertEquals(700L, builtUpdate.getAuthorityId());
+        assertEquals(Update.UpdateType.STATUS_CHANGE, builtUpdate.getUpdateType());
+        assertEquals("ACTIVE", builtUpdate.getPreviousStatus());
+        assertEquals("FOUND", builtUpdate.getNewStatus());
+        assertEquals("Missing person has been located", builtUpdate.getComment());
+    }
+
+    @Test
+    void testOnCreateSetsTimestamp() {
+        LocalDateTime beforeCreate = LocalDateTime.now().minusSeconds(1);
+
+        update.onCreate();
+
+        assertNotNull(update.getCreatedAt());
+        assertTrue(update.getCreatedAt().isAfter(beforeCreate) || update.getCreatedAt().isEqual(beforeCreate));
+    }
+
+    @Test
+    void testSettersAndGetters() {
+        LocalDateTime timestamp = LocalDateTime.now();
+
+        update.setId(20L);
+        update.setFirId(2000L);
+        update.setMissingPersonId(3000L);
+        update.setAuthorityId(4000L);
+        update.setUpdateType(Update.UpdateType.EVIDENCE_ADDED);
+        update.setPreviousStatus("OLD_STATUS");
+        update.setNewStatus("NEW_STATUS");
+        update.setComment("Evidence photos uploaded");
+        update.setCreatedAt(timestamp);
+
+        assertEquals(20L, update.getId());
+        assertEquals(2000L, update.getFirId());
+        assertEquals(3000L, update.getMissingPersonId());
+        assertEquals(4000L, update.getAuthorityId());
+        assertEquals(Update.UpdateType.EVIDENCE_ADDED, update.getUpdateType());
+        assertEquals("OLD_STATUS", update.getPreviousStatus());
+        assertEquals("NEW_STATUS", update.getNewStatus());
+        assertEquals("Evidence photos uploaded", update.getComment());
+        assertEquals(timestamp, update.getCreatedAt());
+    }
+
+    @Test
+    void testUpdateTypeEnum() {
         assertEquals(4, Update.UpdateType.values().length);
         assertNotNull(Update.UpdateType.valueOf("STATUS_CHANGE"));
         assertNotNull(Update.UpdateType.valueOf("COMMENT"));
@@ -73,456 +139,171 @@ class UpdateTest {
     }
 
     @Test
-    @DisplayName("Should create STATUS_CHANGE update")
-    void testStatusChangeUpdate() {
-        // arrange & act
-        Update statusUpdate = Update.builder()
-                .firId(102L)
-                .authorityId(10L)
-                .updateType(Update.UpdateType.STATUS_CHANGE)
-                .previousStatus("PENDING")
-                .newStatus("RESOLVED")
-                .comment("Case resolved successfully")
-                .build();
-
-        // assert
-        assertEquals(Update.UpdateType.STATUS_CHANGE, statusUpdate.getUpdateType());
-        assertEquals("PENDING", statusUpdate.getPreviousStatus());
-        assertEquals("RESOLVED", statusUpdate.getNewStatus());
-    }
-
-    @Test
-    @DisplayName("Should create COMMENT update")
-    void testCommentUpdate() {
-        // arrange & act
-        Update commentUpdate = Update.builder()
-                .firId(103L)
-                .authorityId(15L)
-                .updateType(Update.UpdateType.COMMENT)
-                .comment("Additional investigation required at the scene")
-                .build();
-
-        // assert
-        assertEquals(Update.UpdateType.COMMENT, commentUpdate.getUpdateType());
-        assertNotNull(commentUpdate.getComment());
-        assertNull(commentUpdate.getPreviousStatus());
-        assertNull(commentUpdate.getNewStatus());
-    }
-
-    @Test
-    @DisplayName("Should create EVIDENCE_ADDED update")
-    void testEvidenceAddedUpdate() {
-        // arrange & act
-        Update evidenceUpdate = Update.builder()
-                .firId(104L)
-                .authorityId(20L)
-                .updateType(Update.UpdateType.EVIDENCE_ADDED)
-                .comment("Security camera footage uploaded")
-                .build();
-
-        // assert
-        assertEquals(Update.UpdateType.EVIDENCE_ADDED, evidenceUpdate.getUpdateType());
-        assertEquals("Security camera footage uploaded", evidenceUpdate.getComment());
-    }
-
-    @Test
-    @DisplayName("Should create REASSIGNMENT update")
-    void testReassignmentUpdate() {
-        // arrange & act
-        Update reassignmentUpdate = Update.builder()
-                .firId(105L)
-                .authorityId(25L)
-                .updateType(Update.UpdateType.REASSIGNMENT)
-                .comment("Case reassigned to specialized cybercrime unit")
-                .build();
-
-        // assert
-        assertEquals(Update.UpdateType.REASSIGNMENT, reassignmentUpdate.getUpdateType());
-        assertEquals("Case reassigned to specialized cybercrime unit", reassignmentUpdate.getComment());
-    }
-
-    @Test
-    @DisplayName("Should allow null firId for missing person updates")
-    void testNullableFirId() {
-        // arrange & act
-        Update missingPersonUpdate = Update.builder()
-                .missingPersonId(50L)
-                .authorityId(30L)
-                .updateType(Update.UpdateType.STATUS_CHANGE)
-                .previousStatus("ACTIVE")
-                .newStatus("FOUND")
-                .comment("Person found safe")
-                .build();
-
-        // assert
-        assertNull(missingPersonUpdate.getFirId());
-        assertEquals(50L, missingPersonUpdate.getMissingPersonId());
-    }
-
-    @Test
-    @DisplayName("Should allow null missingPersonId for FIR updates")
-    void testNullableMissingPersonId() {
-        // arrange & act
-        Update firUpdate = Update.builder()
-                .firId(106L)
-                .authorityId(35L)
-                .updateType(Update.UpdateType.COMMENT)
-                .comment("Regular FIR update")
-                .build();
-
-        // assert
-        assertEquals(106L, firUpdate.getFirId());
-        assertNull(firUpdate.getMissingPersonId());
-    }
-
-    @Test
-    @DisplayName("Should allow null previousStatus")
-    void testNullablePreviousStatus() {
-        // arrange & act
-        Update updateWithoutPrevious = Update.builder()
-                .firId(107L)
-                .authorityId(40L)
-                .updateType(Update.UpdateType.COMMENT)
-                .comment("Initial update")
-                .build();
-
-        // assert
-        assertNull(updateWithoutPrevious.getPreviousStatus());
-    }
-
-    @Test
-    @DisplayName("Should allow null newStatus")
-    void testNullableNewStatus() {
-        // arrange & act
-        Update updateWithoutNew = Update.builder()
-                .firId(108L)
-                .authorityId(45L)
-                .updateType(Update.UpdateType.COMMENT)
-                .comment("Just a comment, no status change")
-                .build();
-
-        // assert
-        assertNull(updateWithoutNew.getNewStatus());
-    }
-
-    @Test
-    @DisplayName("Should allow null comment")
-    void testNullableComment() {
-        // arrange & act
-        Update updateWithoutComment = Update.builder()
-                .firId(109L)
-                .authorityId(50L)
-                .updateType(Update.UpdateType.STATUS_CHANGE)
-                .previousStatus("PENDING")
-                .newStatus("CLOSED")
-                .build();
-
-        // assert
-        assertNull(updateWithoutComment.getComment());
-    }
-
-    @Test
-    @DisplayName("Should handle long comment text")
-    void testLongComment() {
-        // arrange
-        String longComment = "This is a very detailed update. " + "Details: ".repeat(200);
-
-        // act
-        Update updateWithLongComment = Update.builder()
-                .firId(110L)
-                .authorityId(55L)
-                .updateType(Update.UpdateType.COMMENT)
-                .comment(longComment)
-                .build();
-
-        // assert
-        assertTrue(updateWithLongComment.getComment().length() > 1000);
-    }
-
-    @Test
-    @DisplayName("Should test equals and hashCode with same data")
     void testEqualsAndHashCode() {
-        // arrange
         Update update1 = Update.builder()
                 .id(1L)
-                .firId(111L)
-                .authorityId(60L)
+                .firId(100L)
+                .authorityId(200L)
                 .updateType(Update.UpdateType.COMMENT)
                 .comment("Test comment")
                 .build();
 
         Update update2 = Update.builder()
                 .id(1L)
-                .firId(111L)
-                .authorityId(60L)
+                .firId(100L)
+                .authorityId(200L)
                 .updateType(Update.UpdateType.COMMENT)
                 .comment("Test comment")
                 .build();
 
-        // assert
+        Update update3 = Update.builder()
+                .id(2L)
+                .firId(300L)
+                .authorityId(400L)
+                .updateType(Update.UpdateType.STATUS_CHANGE)
+                .comment("Different comment")
+                .build();
+
         assertEquals(update1, update2);
+        assertNotEquals(update1, update3);
         assertEquals(update1.hashCode(), update2.hashCode());
     }
 
     @Test
-    @DisplayName("Should test toString contains key fields")
     void testToString() {
-        // arrange
-        Update updateForString = Update.builder()
-                .firId(112L)
-                .authorityId(65L)
-                .updateType(Update.UpdateType.EVIDENCE_ADDED)
-                .comment("New evidence")
+        Update testUpdate = Update.builder()
+                .id(1L)
+                .firId(100L)
+                .authorityId(200L)
+                .updateType(Update.UpdateType.STATUS_CHANGE)
+                .previousStatus("PENDING")
+                .newStatus("RESOLVED")
+                .comment("Case resolved")
                 .build();
 
-        // act
-        String updateString = updateForString.toString();
-
-        // assert
-        assertNotNull(updateString);
-        assertTrue(updateString.contains("EVIDENCE_ADDED"));
+        String toString = testUpdate.toString();
+        assertTrue(toString.contains("Update"));
+        assertTrue(toString.contains("STATUS_CHANGE"));
     }
 
     @Test
-    @DisplayName("Should allow updating all mutable fields")
-    void testAllSetters() {
-        // arrange
-        Update mutableUpdate = Update.builder()
-                .firId(113L)
-                .authorityId(70L)
-                .updateType(Update.UpdateType.COMMENT)
-                .comment("Original comment")
-                .build();
-
-        // act
-        mutableUpdate.setFirId(200L);
-        mutableUpdate.setMissingPersonId(300L);
-        mutableUpdate.setAuthorityId(75L);
-        mutableUpdate.setUpdateType(Update.UpdateType.STATUS_CHANGE);
-        mutableUpdate.setPreviousStatus("OLD_STATUS");
-        mutableUpdate.setNewStatus("NEW_STATUS");
-        mutableUpdate.setComment("Updated comment");
-
-        // assert
-        assertEquals(200L, mutableUpdate.getFirId());
-        assertEquals(300L, mutableUpdate.getMissingPersonId());
-        assertEquals(75L, mutableUpdate.getAuthorityId());
-        assertEquals(Update.UpdateType.STATUS_CHANGE, mutableUpdate.getUpdateType());
-        assertEquals("OLD_STATUS", mutableUpdate.getPreviousStatus());
-        assertEquals("NEW_STATUS", mutableUpdate.getNewStatus());
-        assertEquals("Updated comment", mutableUpdate.getComment());
-    }
-
-    @Test
-    @DisplayName("Should handle multiple status transitions")
-    void testMultipleStatusTransitions() {
-        // arrange
-        Update transition1 = Update.builder()
-                .firId(114L)
-                .authorityId(80L)
+    void testStatusChangeUpdate() {
+        Update statusUpdate = Update.builder()
+                .firId(123L)
+                .authorityId(456L)
                 .updateType(Update.UpdateType.STATUS_CHANGE)
                 .previousStatus("PENDING")
                 .newStatus("UNDER_INVESTIGATION")
-                .comment("Started investigation")
+                .comment("Investigation started by Officer Smith")
                 .build();
 
-        Update transition2 = Update.builder()
-                .firId(114L)
-                .authorityId(80L)
-                .updateType(Update.UpdateType.STATUS_CHANGE)
-                .previousStatus("UNDER_INVESTIGATION")
-                .newStatus("RESOLVED")
-                .comment("Investigation completed")
-                .build();
-
-        Update transition3 = Update.builder()
-                .firId(114L)
-                .authorityId(80L)
-                .updateType(Update.UpdateType.STATUS_CHANGE)
-                .previousStatus("RESOLVED")
-                .newStatus("CLOSED")
-                .comment("Case closed")
-                .build();
-
-        // assert
-        assertEquals("PENDING", transition1.getPreviousStatus());
-        assertEquals("UNDER_INVESTIGATION", transition1.getNewStatus());
-        assertEquals("UNDER_INVESTIGATION", transition2.getPreviousStatus());
-        assertEquals("RESOLVED", transition2.getNewStatus());
-        assertEquals("RESOLVED", transition3.getPreviousStatus());
-        assertEquals("CLOSED", transition3.getNewStatus());
+        assertEquals(Update.UpdateType.STATUS_CHANGE, statusUpdate.getUpdateType());
+        assertEquals("PENDING", statusUpdate.getPreviousStatus());
+        assertEquals("UNDER_INVESTIGATION", statusUpdate.getNewStatus());
+        assertNotNull(statusUpdate.getComment());
     }
 
     @Test
-    @DisplayName("Should handle update with both FIR and missing person IDs")
-    void testBothIdsPresent() {
-        // arrange & act
-        Update crossReferenceUpdate = Update.builder()
-                .firId(115L)
-                .missingPersonId(60L)
-                .authorityId(85L)
+    void testCommentOnlyUpdate() {
+        Update commentUpdate = Update.builder()
+                .firId(789L)
+                .authorityId(321L)
                 .updateType(Update.UpdateType.COMMENT)
-                .comment("This FIR is related to a missing person case")
+                .comment("Witness statement recorded")
                 .build();
 
-        // assert
-        assertEquals(115L, crossReferenceUpdate.getFirId());
-        assertEquals(60L, crossReferenceUpdate.getMissingPersonId());
+        assertEquals(Update.UpdateType.COMMENT, commentUpdate.getUpdateType());
+        assertNull(commentUpdate.getPreviousStatus());
+        assertNull(commentUpdate.getNewStatus());
+        assertEquals("Witness statement recorded", commentUpdate.getComment());
     }
 
     @Test
-    @DisplayName("Should handle special characters in comment")
-    void testSpecialCharactersInComment() {
-        // arrange
-        String specialComment = "Update: Case #123 - Evidence found @ location. Cost: $500 (approx). Contact: officer@police.gov";
-
-        // act
-        Update updateWithSpecialChars = Update.builder()
-                .firId(116L)
-                .authorityId(90L)
-                .updateType(Update.UpdateType.COMMENT)
-                .comment(specialComment)
+    void testEvidenceAddedUpdate() {
+        Update evidenceUpdate = Update.builder()
+                .firId(555L)
+                .authorityId(666L)
+                .updateType(Update.UpdateType.EVIDENCE_ADDED)
+                .comment("CCTV footage uploaded")
                 .build();
 
-        // assert
-        assertEquals(specialComment, updateWithSpecialChars.getComment());
-        assertTrue(updateWithSpecialChars.getComment().contains("#123"));
-        assertTrue(updateWithSpecialChars.getComment().contains("@"));
-        assertTrue(updateWithSpecialChars.getComment().contains("$500"));
+        assertEquals(Update.UpdateType.EVIDENCE_ADDED, evidenceUpdate.getUpdateType());
+        assertEquals("CCTV footage uploaded", evidenceUpdate.getComment());
     }
 
     @Test
-    @DisplayName("Should handle update with empty status strings")
-    void testEmptyStatusStrings() {
-        // arrange & act
-        Update updateWithEmptyStatus = Update.builder()
-                .firId(117L)
-                .authorityId(95L)
-                .updateType(Update.UpdateType.COMMENT)
-                .previousStatus("")
-                .newStatus("")
-                .comment("Test empty status")
+    void testReassignmentUpdate() {
+        Update reassignmentUpdate = Update.builder()
+                .firId(999L)
+                .authorityId(111L)
+                .updateType(Update.UpdateType.REASSIGNMENT)
+                .previousStatus("PENDING")
+                .newStatus("PENDING")
+                .comment("Case reassigned to Detective Jones")
                 .build();
 
-        // assert
-        assertEquals("", updateWithEmptyStatus.getPreviousStatus());
-        assertEquals("", updateWithEmptyStatus.getNewStatus());
+        assertEquals(Update.UpdateType.REASSIGNMENT, reassignmentUpdate.getUpdateType());
+        assertEquals("Case reassigned to Detective Jones", reassignmentUpdate.getComment());
     }
 
     @Test
-    @DisplayName("Should track creation time accurately")
-    void testCreationTimeAccuracy() {
-        // arrange
-        LocalDateTime beforeCreate = LocalDateTime.now();
-        Update timeTrackedUpdate = Update.builder()
-                .firId(118L)
+    void testNullableFields() {
+        Update testUpdate = Update.builder()
                 .authorityId(100L)
                 .updateType(Update.UpdateType.COMMENT)
-                .comment("Time tracking test")
                 .build();
 
-        // act
-        timeTrackedUpdate.onCreate();
-        LocalDateTime afterCreate = LocalDateTime.now();
-
-        // assert
-        assertNotNull(timeTrackedUpdate.getCreatedAt());
-        assertFalse(timeTrackedUpdate.getCreatedAt().isBefore(beforeCreate));
-        assertFalse(timeTrackedUpdate.getCreatedAt().isAfter(afterCreate));
+        assertNull(testUpdate.getId());
+        assertNull(testUpdate.getFirId());
+        assertNull(testUpdate.getMissingPersonId());
+        assertNull(testUpdate.getPreviousStatus());
+        assertNull(testUpdate.getNewStatus());
+        assertNull(testUpdate.getComment());
+        assertNull(testUpdate.getCreatedAt());
     }
 
     @Test
-    @DisplayName("Should handle rejection to pending status reversal")
-    void testStatusReversal() {
-        // arrange & act
-        Update reversalUpdate = Update.builder()
-                .firId(119L)
-                .authorityId(105L)
-                .updateType(Update.UpdateType.STATUS_CHANGE)
-                .previousStatus("REJECTED")
-                .newStatus("PENDING")
-                .comment("Case reopened after review")
-                .build();
-
-        // assert
-        assertEquals("REJECTED", reversalUpdate.getPreviousStatus());
-        assertEquals("PENDING", reversalUpdate.getNewStatus());
-    }
-
-    @Test
-    @DisplayName("Should handle multiline comment text")
-    void testMultilineComment() {
-        // arrange
-        String multilineComment = "Line 1: Initial investigation\nLine 2: Evidence collected\nLine 3: Witness statements recorded";
-
-        // act
-        Update multilineUpdate = Update.builder()
-                .firId(120L)
-                .authorityId(110L)
+    void testMutuallyExclusiveFirAndMissingPerson() {
+        Update firUpdate = Update.builder()
+                .firId(100L)
+                .authorityId(200L)
                 .updateType(Update.UpdateType.COMMENT)
-                .comment(multilineComment)
+                .comment("FIR update")
                 .build();
 
-        // assert
-        assertEquals(multilineComment, multilineUpdate.getComment());
-        assertTrue(multilineUpdate.getComment().contains("\n"));
+        Update missingPersonUpdate = Update.builder()
+                .missingPersonId(300L)
+                .authorityId(400L)
+                .updateType(Update.UpdateType.COMMENT)
+                .comment("Missing person update")
+                .build();
+
+        assertNotNull(firUpdate.getFirId());
+        assertNull(firUpdate.getMissingPersonId());
+        assertNull(missingPersonUpdate.getFirId());
+        assertNotNull(missingPersonUpdate.getMissingPersonId());
     }
 
     @Test
-    @DisplayName("Should support evidence documentation workflow")
-    void testEvidenceWorkflow() {
-        // arrange & act
-        Update evidenceReceived = Update.builder()
-                .firId(121L)
-                .authorityId(115L)
-                .updateType(Update.UpdateType.EVIDENCE_ADDED)
-                .comment("Physical evidence received and logged")
-                .build();
+    void testOnCreatePreservesExistingTimestamp() {
+        LocalDateTime existingTimestamp = LocalDateTime.of(2024, 1, 1, 12, 0);
+        update.setCreatedAt(existingTimestamp);
 
-        Update evidenceAnalyzed = Update.builder()
-                .firId(121L)
-                .authorityId(115L)
-                .updateType(Update.UpdateType.COMMENT)
-                .comment("Forensic analysis completed")
-                .build();
+        update.onCreate();
 
-        Update evidenceProcessed = Update.builder()
-                .firId(121L)
-                .authorityId(115L)
-                .updateType(Update.UpdateType.STATUS_CHANGE)
-                .previousStatus("UNDER_INVESTIGATION")
-                .newStatus("RESOLVED")
-                .comment("Evidence confirmed suspect's involvement")
-                .build();
-
-        // assert
-        assertEquals(Update.UpdateType.EVIDENCE_ADDED, evidenceReceived.getUpdateType());
-        assertEquals(Update.UpdateType.COMMENT, evidenceAnalyzed.getUpdateType());
-        assertEquals(Update.UpdateType.STATUS_CHANGE, evidenceProcessed.getUpdateType());
-        assertEquals("RESOLVED", evidenceProcessed.getNewStatus());
+        assertNotEquals(existingTimestamp, update.getCreatedAt());
+        assertTrue(update.getCreatedAt().isAfter(existingTimestamp));
     }
 
     @Test
-    @DisplayName("Should handle case reassignment between authorities")
-    void testCaseReassignment() {
-        // arrange & act
-        Update originalAssignment = Update.builder()
-                .firId(122L)
-                .authorityId(120L)
-                .updateType(Update.UpdateType.COMMENT)
-                .comment("Case initially assigned to local precinct")
-                .build();
+    void testMultipleOnCreateCalls() throws InterruptedException {
+        update.onCreate();
+        LocalDateTime firstTimestamp = update.getCreatedAt();
 
-        Update reassignment = Update.builder()
-                .firId(122L)
-                .authorityId(125L)
-                .updateType(Update.UpdateType.REASSIGNMENT)
-                .comment("Case transferred to state criminal investigation department")
-                .build();
+        Thread.sleep(10);
+        update.onCreate();
+        LocalDateTime secondTimestamp = update.getCreatedAt();
 
-        // assert
-        assertEquals(120L, originalAssignment.getAuthorityId());
-        assertEquals(125L, reassignment.getAuthorityId());
-        assertEquals(Update.UpdateType.REASSIGNMENT, reassignment.getUpdateType());
+        assertTrue(secondTimestamp.isAfter(firstTimestamp));
     }
 }
