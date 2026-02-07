@@ -1,8 +1,7 @@
 package com.ocrs.backend.entity;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -10,7 +9,6 @@ import java.time.LocalTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@DisplayName("FIR Entity Tests")
 class FIRTest {
 
     private FIR fir;
@@ -21,133 +19,164 @@ class FIRTest {
     }
 
     @Test
-    @DisplayName("Should create FIR with builder pattern")
-    void testBuilderPattern() {
-        // arrange & act
+    void testNoArgsConstructor() {
+        FIR newFir = new FIR();
+        assertNotNull(newFir);
+        assertNull(newFir.getId());
+        assertNull(newFir.getFirNumber());
+    }
+
+    @Test
+    void testAllArgsConstructor() {
         LocalDate incidentDate = LocalDate.of(2024, 1, 15);
         LocalTime incidentTime = LocalTime.of(14, 30);
+        LocalDateTime now = LocalDateTime.now();
+
+        FIR newFir = new FIR(
+                1L,
+                "FIR123456",
+                100L,
+                200L,
+                FIR.Category.THEFT,
+                "Stolen Vehicle",
+                "Vehicle stolen from parking lot",
+                incidentDate,
+                incidentTime,
+                "123 Main St",
+                FIR.Status.PENDING,
+                FIR.Priority.HIGH,
+                "[\"evidence1.jpg\"]",
+                now,
+                now
+        );
+
+        assertEquals(1L, newFir.getId());
+        assertEquals("FIR123456", newFir.getFirNumber());
+        assertEquals(100L, newFir.getUserId());
+        assertEquals(200L, newFir.getAuthorityId());
+        assertEquals(FIR.Category.THEFT, newFir.getCategory());
+        assertEquals("Stolen Vehicle", newFir.getTitle());
+        assertEquals("Vehicle stolen from parking lot", newFir.getDescription());
+        assertEquals(incidentDate, newFir.getIncidentDate());
+        assertEquals(incidentTime, newFir.getIncidentTime());
+        assertEquals("123 Main St", newFir.getIncidentLocation());
+        assertEquals(FIR.Status.PENDING, newFir.getStatus());
+        assertEquals(FIR.Priority.HIGH, newFir.getPriority());
+        assertEquals("[\"evidence1.jpg\"]", newFir.getEvidenceUrls());
+        assertEquals(now, newFir.getCreatedAt());
+        assertEquals(now, newFir.getUpdatedAt());
+    }
+
+    @Test
+    void testBuilderPattern() {
+        LocalDate incidentDate = LocalDate.of(2024, 2, 20);
+        LocalTime incidentTime = LocalTime.of(10, 15);
 
         FIR builtFir = FIR.builder()
-                .firNumber("FIR-2024-001")
-                .userId(1L)
-                .authorityId(10L)
-                .category(FIR.Category.THEFT)
-                .title("Test FIR Title")
-                .description("Detailed description of the incident")
+                .id(5L)
+                .firNumber("FIR789012")
+                .userId(300L)
+                .authorityId(400L)
+                .category(FIR.Category.ASSAULT)
+                .title("Physical Assault")
+                .description("Assault incident description")
                 .incidentDate(incidentDate)
                 .incidentTime(incidentTime)
-                .incidentLocation("123 Main Street")
-                .status(FIR.Status.PENDING)
-                .priority(FIR.Priority.HIGH)
-                .evidenceUrls("[\"url1\", \"url2\"]")
+                .incidentLocation("456 Oak Ave")
+                .status(FIR.Status.UNDER_INVESTIGATION)
+                .priority(FIR.Priority.URGENT)
+                .evidenceUrls("[\"photo1.jpg\", \"video1.mp4\"]")
                 .build();
 
-        // assert
-        assertNotNull(builtFir);
-        assertEquals("FIR-2024-001", builtFir.getFirNumber());
-        assertEquals(1L, builtFir.getUserId());
-        assertEquals(10L, builtFir.getAuthorityId());
-        assertEquals(FIR.Category.THEFT, builtFir.getCategory());
-        assertEquals("Test FIR Title", builtFir.getTitle());
-        assertEquals("Detailed description of the incident", builtFir.getDescription());
+        assertEquals(5L, builtFir.getId());
+        assertEquals("FIR789012", builtFir.getFirNumber());
+        assertEquals(300L, builtFir.getUserId());
+        assertEquals(400L, builtFir.getAuthorityId());
+        assertEquals(FIR.Category.ASSAULT, builtFir.getCategory());
+        assertEquals("Physical Assault", builtFir.getTitle());
+        assertEquals("Assault incident description", builtFir.getDescription());
         assertEquals(incidentDate, builtFir.getIncidentDate());
         assertEquals(incidentTime, builtFir.getIncidentTime());
-        assertEquals("123 Main Street", builtFir.getIncidentLocation());
-        assertEquals(FIR.Status.PENDING, builtFir.getStatus());
-        assertEquals(FIR.Priority.HIGH, builtFir.getPriority());
-        assertEquals("[\"url1\", \"url2\"]", builtFir.getEvidenceUrls());
+        assertEquals("456 Oak Ave", builtFir.getIncidentLocation());
+        assertEquals(FIR.Status.UNDER_INVESTIGATION, builtFir.getStatus());
+        assertEquals(FIR.Priority.URGENT, builtFir.getPriority());
+        assertEquals("[\"photo1.jpg\", \"video1.mp4\"]", builtFir.getEvidenceUrls());
     }
 
     @Test
-    @DisplayName("Should have default status as PENDING")
-    void testDefaultStatus() {
-        // arrange & act
-        FIR firWithDefaults = FIR.builder()
-                .firNumber("FIR-2024-002")
-                .userId(1L)
-                .category(FIR.Category.ASSAULT)
-                .title("Test")
-                .description("Test description")
-                .incidentDate(LocalDate.now())
-                .incidentLocation("Test location")
-                .build();
-
-        // assert
-        assertEquals(FIR.Status.PENDING, firWithDefaults.getStatus());
-    }
-
-    @Test
-    @DisplayName("Should have default priority as MEDIUM")
-    void testDefaultPriority() {
-        // arrange & act
-        FIR firWithDefaults = FIR.builder()
-                .firNumber("FIR-2024-003")
-                .userId(1L)
-                .category(FIR.Category.FRAUD)
-                .title("Test")
-                .description("Test description")
-                .incidentDate(LocalDate.now())
-                .incidentLocation("Test location")
-                .build();
-
-        // assert
-        assertEquals(FIR.Priority.MEDIUM, firWithDefaults.getPriority());
-    }
-
-    @Test
-    @DisplayName("Should set createdAt and updatedAt on persist")
-    void testOnCreateCallback() {
-        // arrange
-        FIR newFir = FIR.builder()
-                .firNumber("FIR-2024-004")
-                .userId(1L)
+    void testBuilderWithDefaultValues() {
+        FIR builtFir = FIR.builder()
+                .firNumber("FIR111111")
+                .userId(500L)
                 .category(FIR.Category.CYBERCRIME)
-                .title("Test")
-                .description("Test description")
+                .title("Phishing Attack")
+                .description("Received phishing email")
                 .incidentDate(LocalDate.now())
-                .incidentLocation("Test location")
+                .incidentLocation("Online")
                 .build();
 
-        // act
-        newFir.onCreate();
-
-        // assert
-        assertNotNull(newFir.getCreatedAt());
-        assertNotNull(newFir.getUpdatedAt());
-        assertEquals(newFir.getCreatedAt(), newFir.getUpdatedAt());
+        assertEquals(FIR.Status.PENDING, builtFir.getStatus());
+        assertEquals(FIR.Priority.MEDIUM, builtFir.getPriority());
     }
 
     @Test
-    @DisplayName("Should update updatedAt on update")
-    void testOnUpdateCallback() throws InterruptedException {
-        // arrange
-        FIR existingFir = FIR.builder()
-                .firNumber("FIR-2024-005")
-                .userId(1L)
-                .category(FIR.Category.HARASSMENT)
-                .title("Test")
-                .description("Test description")
-                .incidentDate(LocalDate.now())
-                .incidentLocation("Test location")
-                .build();
+    void testOnCreateSetsTimestamps() {
+        LocalDateTime beforeCreate = LocalDateTime.now().minusSeconds(1);
 
-        existingFir.onCreate();
-        LocalDateTime originalCreatedAt = existingFir.getCreatedAt();
-        LocalDateTime originalUpdatedAt = existingFir.getUpdatedAt();
+        fir.onCreate();
 
-        // act
-        Thread.sleep(10); // ensure time difference
-        existingFir.onUpdate();
-
-        // assert
-        assertEquals(originalCreatedAt, existingFir.getCreatedAt());
-        assertTrue(existingFir.getUpdatedAt().isAfter(originalUpdatedAt));
+        assertNotNull(fir.getCreatedAt());
+        assertNotNull(fir.getUpdatedAt());
+        assertTrue(fir.getCreatedAt().isAfter(beforeCreate) || fir.getCreatedAt().isEqual(beforeCreate));
+        assertTrue(fir.getUpdatedAt().isAfter(beforeCreate) || fir.getUpdatedAt().isEqual(beforeCreate));
+        assertEquals(fir.getCreatedAt(), fir.getUpdatedAt());
     }
 
     @Test
-    @DisplayName("Should support all Category enum values")
-    void testAllCategoryValues() {
-        // assert
+    void testOnUpdateUpdatesTimestamp() throws InterruptedException {
+        fir.onCreate();
+        LocalDateTime initialUpdatedAt = fir.getUpdatedAt();
+
+        Thread.sleep(10);
+        fir.onUpdate();
+
+        assertNotNull(fir.getUpdatedAt());
+        assertTrue(fir.getUpdatedAt().isAfter(initialUpdatedAt));
+    }
+
+    @Test
+    void testSettersAndGetters() {
+        fir.setId(10L);
+        fir.setFirNumber("FIR999999");
+        fir.setUserId(600L);
+        fir.setAuthorityId(700L);
+        fir.setCategory(FIR.Category.FRAUD);
+        fir.setTitle("Credit Card Fraud");
+        fir.setDescription("Unauthorized transactions detected");
+        fir.setIncidentDate(LocalDate.of(2024, 3, 10));
+        fir.setIncidentTime(LocalTime.of(16, 45));
+        fir.setIncidentLocation("Online Banking");
+        fir.setStatus(FIR.Status.RESOLVED);
+        fir.setPriority(FIR.Priority.LOW);
+        fir.setEvidenceUrls("[\"statement.pdf\"]");
+
+        assertEquals(10L, fir.getId());
+        assertEquals("FIR999999", fir.getFirNumber());
+        assertEquals(600L, fir.getUserId());
+        assertEquals(700L, fir.getAuthorityId());
+        assertEquals(FIR.Category.FRAUD, fir.getCategory());
+        assertEquals("Credit Card Fraud", fir.getTitle());
+        assertEquals("Unauthorized transactions detected", fir.getDescription());
+        assertEquals(LocalDate.of(2024, 3, 10), fir.getIncidentDate());
+        assertEquals(LocalTime.of(16, 45), fir.getIncidentTime());
+        assertEquals("Online Banking", fir.getIncidentLocation());
+        assertEquals(FIR.Status.RESOLVED, fir.getStatus());
+        assertEquals(FIR.Priority.LOW, fir.getPriority());
+        assertEquals("[\"statement.pdf\"]", fir.getEvidenceUrls());
+    }
+
+    @Test
+    void testCategoryEnum() {
         assertEquals(7, FIR.Category.values().length);
         assertNotNull(FIR.Category.valueOf("THEFT"));
         assertNotNull(FIR.Category.valueOf("ASSAULT"));
@@ -159,9 +188,7 @@ class FIRTest {
     }
 
     @Test
-    @DisplayName("Should support all Status enum values")
-    void testAllStatusValues() {
-        // assert
+    void testStatusEnum() {
         assertEquals(5, FIR.Status.values().length);
         assertNotNull(FIR.Status.valueOf("PENDING"));
         assertNotNull(FIR.Status.valueOf("UNDER_INVESTIGATION"));
@@ -171,9 +198,7 @@ class FIRTest {
     }
 
     @Test
-    @DisplayName("Should support all Priority enum values")
-    void testAllPriorityValues() {
-        // assert
+    void testPriorityEnum() {
         assertEquals(4, FIR.Priority.values().length);
         assertNotNull(FIR.Priority.valueOf("LOW"));
         assertNotNull(FIR.Priority.valueOf("MEDIUM"));
@@ -182,173 +207,11 @@ class FIRTest {
     }
 
     @Test
-    @DisplayName("Should allow null authorityId")
-    void testNullableAuthorityId() {
-        // arrange & act
-        FIR firWithoutAuthority = FIR.builder()
-                .firNumber("FIR-2024-006")
-                .userId(1L)
-                .category(FIR.Category.VANDALISM)
-                .title("Test")
-                .description("Test description")
-                .incidentDate(LocalDate.now())
-                .incidentLocation("Test location")
-                .build();
-
-        // assert
-        assertNull(firWithoutAuthority.getAuthorityId());
-    }
-
-    @Test
-    @DisplayName("Should allow null incidentTime")
-    void testNullableIncidentTime() {
-        // arrange & act
-        FIR firWithoutTime = FIR.builder()
-                .firNumber("FIR-2024-007")
-                .userId(1L)
-                .category(FIR.Category.OTHER)
-                .title("Test")
-                .description("Test description")
-                .incidentDate(LocalDate.now())
-                .incidentLocation("Test location")
-                .build();
-
-        // assert
-        assertNull(firWithoutTime.getIncidentTime());
-    }
-
-    @Test
-    @DisplayName("Should allow null evidenceUrls")
-    void testNullableEvidenceUrls() {
-        // arrange & act
-        FIR firWithoutEvidence = FIR.builder()
-                .firNumber("FIR-2024-008")
-                .userId(1L)
-                .category(FIR.Category.THEFT)
-                .title("Test")
-                .description("Test description")
-                .incidentDate(LocalDate.now())
-                .incidentLocation("Test location")
-                .build();
-
-        // assert
-        assertNull(firWithoutEvidence.getEvidenceUrls());
-    }
-
-    @Test
-    @DisplayName("Should support status transition from PENDING to UNDER_INVESTIGATION")
-    void testStatusTransition() {
-        // arrange
-        FIR firInProgress = FIR.builder()
-                .firNumber("FIR-2024-009")
-                .userId(1L)
-                .category(FIR.Category.THEFT)
-                .title("Test")
-                .description("Test description")
-                .incidentDate(LocalDate.now())
-                .incidentLocation("Test location")
-                .status(FIR.Status.PENDING)
-                .build();
-
-        // act
-        firInProgress.setStatus(FIR.Status.UNDER_INVESTIGATION);
-
-        // assert
-        assertEquals(FIR.Status.UNDER_INVESTIGATION, firInProgress.getStatus());
-    }
-
-    @Test
-    @DisplayName("Should support priority escalation")
-    void testPriorityEscalation() {
-        // arrange
-        FIR firToEscalate = FIR.builder()
-                .firNumber("FIR-2024-010")
-                .userId(1L)
-                .category(FIR.Category.ASSAULT)
-                .title("Test")
-                .description("Test description")
-                .incidentDate(LocalDate.now())
-                .incidentLocation("Test location")
-                .priority(FIR.Priority.LOW)
-                .build();
-
-        // act
-        firToEscalate.setPriority(FIR.Priority.URGENT);
-
-        // assert
-        assertEquals(FIR.Priority.URGENT, firToEscalate.getPriority());
-    }
-
-    @Test
-    @DisplayName("Should handle past incident dates")
-    void testPastIncidentDate() {
-        // arrange & act
-        LocalDate pastDate = LocalDate.of(2023, 6, 15);
-        FIR pastFir = FIR.builder()
-                .firNumber("FIR-2024-011")
-                .userId(1L)
-                .category(FIR.Category.FRAUD)
-                .title("Test")
-                .description("Test description")
-                .incidentDate(pastDate)
-                .incidentLocation("Test location")
-                .build();
-
-        // assert
-        assertEquals(pastDate, pastFir.getIncidentDate());
-        assertTrue(pastFir.getIncidentDate().isBefore(LocalDate.now()));
-    }
-
-    @Test
-    @DisplayName("Should handle long description text")
-    void testLongDescription() {
-        // arrange
-        String longDescription = "A".repeat(5000);
-
-        // act
-        FIR firWithLongDescription = FIR.builder()
-                .firNumber("FIR-2024-012")
-                .userId(1L)
-                .category(FIR.Category.CYBERCRIME)
-                .title("Test")
-                .description(longDescription)
-                .incidentDate(LocalDate.now())
-                .incidentLocation("Test location")
-                .build();
-
-        // assert
-        assertEquals(5000, firWithLongDescription.getDescription().length());
-    }
-
-    @Test
-    @DisplayName("Should handle long location text")
-    void testLongLocation() {
-        // arrange
-        String longLocation = "Building 123, Floor 45, Room 678, " + "Street details ".repeat(50);
-
-        // act
-        FIR firWithLongLocation = FIR.builder()
-                .firNumber("FIR-2024-013")
-                .userId(1L)
-                .category(FIR.Category.HARASSMENT)
-                .title("Test")
-                .description("Test description")
-                .incidentDate(LocalDate.now())
-                .incidentLocation(longLocation)
-                .build();
-
-        // assert
-        assertTrue(firWithLongLocation.getIncidentLocation().length() > 100);
-    }
-
-    @Test
-    @DisplayName("Should test equals and hashCode with same data")
     void testEqualsAndHashCode() {
-        // arrange
         FIR fir1 = FIR.builder()
                 .id(1L)
-                .firNumber("FIR-2024-014")
-                .userId(1L)
+                .firNumber("FIR001")
+                .userId(100L)
                 .category(FIR.Category.THEFT)
                 .title("Test")
                 .description("Test description")
@@ -358,8 +221,8 @@ class FIRTest {
 
         FIR fir2 = FIR.builder()
                 .id(1L)
-                .firNumber("FIR-2024-014")
-                .userId(1L)
+                .firNumber("FIR001")
+                .userId(100L)
                 .category(FIR.Category.THEFT)
                 .title("Test")
                 .description("Test description")
@@ -367,156 +230,104 @@ class FIRTest {
                 .incidentLocation("Test location")
                 .build();
 
-        // assert
+        FIR fir3 = FIR.builder()
+                .id(2L)
+                .firNumber("FIR002")
+                .userId(200L)
+                .category(FIR.Category.ASSAULT)
+                .title("Different")
+                .description("Different description")
+                .incidentDate(LocalDate.now())
+                .incidentLocation("Different location")
+                .build();
+
         assertEquals(fir1, fir2);
+        assertNotEquals(fir1, fir3);
         assertEquals(fir1.hashCode(), fir2.hashCode());
     }
 
     @Test
-    @DisplayName("Should test toString contains key fields")
     void testToString() {
-        // arrange
-        FIR firForString = FIR.builder()
-                .firNumber("FIR-2024-015")
-                .userId(1L)
-                .category(FIR.Category.VANDALISM)
-                .title("Test Title")
-                .description("Test description")
-                .incidentDate(LocalDate.now())
-                .incidentLocation("Test location")
-                .build();
-
-        // act
-        String firString = firForString.toString();
-
-        // assert
-        assertNotNull(firString);
-        assertTrue(firString.contains("FIR-2024-015"));
-        assertTrue(firString.contains("VANDALISM"));
-    }
-
-    @Test
-    @DisplayName("Should handle multiple evidence URLs in JSON format")
-    void testMultipleEvidenceUrls() {
-        // arrange
-        String jsonEvidence = "[\"https://example.com/photo1.jpg\", \"https://example.com/photo2.jpg\", \"https://example.com/video.mp4\"]";
-
-        // act
-        FIR firWithMultipleEvidence = FIR.builder()
-                .firNumber("FIR-2024-016")
-                .userId(1L)
-                .category(FIR.Category.ASSAULT)
-                .title("Test")
-                .description("Test description")
-                .incidentDate(LocalDate.now())
-                .incidentLocation("Test location")
-                .evidenceUrls(jsonEvidence)
-                .build();
-
-        // assert
-        assertEquals(jsonEvidence, firWithMultipleEvidence.getEvidenceUrls());
-        assertTrue(firWithMultipleEvidence.getEvidenceUrls().contains("photo1.jpg"));
-        assertTrue(firWithMultipleEvidence.getEvidenceUrls().contains("video.mp4"));
-    }
-
-    @Test
-    @DisplayName("Should allow updating all mutable fields")
-    void testAllSetters() {
-        // arrange
-        FIR mutableFir = FIR.builder()
-                .firNumber("FIR-2024-017")
-                .userId(1L)
+        FIR testFir = FIR.builder()
+                .id(1L)
+                .firNumber("FIR123")
+                .userId(100L)
                 .category(FIR.Category.THEFT)
-                .title("Original Title")
-                .description("Original description")
-                .incidentDate(LocalDate.now())
-                .incidentLocation("Original location")
+                .title("Test Title")
+                .description("Test Description")
+                .incidentDate(LocalDate.of(2024, 1, 1))
+                .incidentLocation("Test Location")
                 .build();
 
-        // act
-        mutableFir.setAuthorityId(20L);
-        mutableFir.setCategory(FIR.Category.FRAUD);
-        mutableFir.setTitle("Updated Title");
-        mutableFir.setDescription("Updated description");
-        mutableFir.setIncidentTime(LocalTime.of(10, 30));
-        mutableFir.setStatus(FIR.Status.RESOLVED);
-        mutableFir.setPriority(FIR.Priority.HIGH);
-        mutableFir.setEvidenceUrls("[\"new_evidence.pdf\"]");
-
-        // assert
-        assertEquals(20L, mutableFir.getAuthorityId());
-        assertEquals(FIR.Category.FRAUD, mutableFir.getCategory());
-        assertEquals("Updated Title", mutableFir.getTitle());
-        assertEquals("Updated description", mutableFir.getDescription());
-        assertEquals(LocalTime.of(10, 30), mutableFir.getIncidentTime());
-        assertEquals(FIR.Status.RESOLVED, mutableFir.getStatus());
-        assertEquals(FIR.Priority.HIGH, mutableFir.getPriority());
-        assertEquals("[\"new_evidence.pdf\"]", mutableFir.getEvidenceUrls());
+        String toString = testFir.toString();
+        assertTrue(toString.contains("FIR"));
+        assertTrue(toString.contains("FIR123"));
+        assertTrue(toString.contains("Test Title"));
     }
 
     @Test
-    @DisplayName("Should handle edge case of midnight incident time")
-    void testMidnightIncidentTime() {
-        // arrange & act
-        FIR midnightFir = FIR.builder()
-                .firNumber("FIR-2024-018")
-                .userId(1L)
+    void testNullableFields() {
+        FIR testFir = FIR.builder()
+                .firNumber("FIR000")
+                .userId(100L)
                 .category(FIR.Category.OTHER)
                 .title("Test")
-                .description("Test description")
+                .description("Test")
                 .incidentDate(LocalDate.now())
-                .incidentTime(LocalTime.MIDNIGHT)
-                .incidentLocation("Test location")
+                .incidentLocation("Location")
                 .build();
 
-        // assert
-        assertEquals(LocalTime.MIDNIGHT, midnightFir.getIncidentTime());
-        assertEquals(0, midnightFir.getIncidentTime().getHour());
+        assertNull(testFir.getId());
+        assertNull(testFir.getAuthorityId());
+        assertNull(testFir.getIncidentTime());
+        assertNull(testFir.getEvidenceUrls());
+        assertNull(testFir.getCreatedAt());
+        assertNull(testFir.getUpdatedAt());
     }
 
     @Test
-    @DisplayName("Should handle all possible status values in lifecycle")
-    void testCompleteStatusLifecycle() {
-        // arrange
-        FIR lifecycleFir = FIR.builder()
-                .firNumber("FIR-2024-019")
-                .userId(1L)
-                .category(FIR.Category.CYBERCRIME)
-                .title("Test")
-                .description("Test description")
-                .incidentDate(LocalDate.now())
-                .incidentLocation("Test location")
-                .build();
+    void testMultipleUpdates() throws InterruptedException {
+        fir.onCreate();
+        LocalDateTime createdAt = fir.getCreatedAt();
+        LocalDateTime firstUpdate = fir.getUpdatedAt();
 
-        // act & assert - transition through all statuses
-        assertEquals(FIR.Status.PENDING, lifecycleFir.getStatus());
+        Thread.sleep(10);
+        fir.onUpdate();
+        LocalDateTime secondUpdate = fir.getUpdatedAt();
 
-        lifecycleFir.setStatus(FIR.Status.UNDER_INVESTIGATION);
-        assertEquals(FIR.Status.UNDER_INVESTIGATION, lifecycleFir.getStatus());
+        Thread.sleep(10);
+        fir.onUpdate();
+        LocalDateTime thirdUpdate = fir.getUpdatedAt();
 
-        lifecycleFir.setStatus(FIR.Status.RESOLVED);
-        assertEquals(FIR.Status.RESOLVED, lifecycleFir.getStatus());
-
-        lifecycleFir.setStatus(FIR.Status.CLOSED);
-        assertEquals(FIR.Status.CLOSED, lifecycleFir.getStatus());
+        assertEquals(createdAt, fir.getCreatedAt());
+        assertTrue(secondUpdate.isAfter(firstUpdate));
+        assertTrue(thirdUpdate.isAfter(secondUpdate));
     }
 
     @Test
-    @DisplayName("Should handle rejection status")
-    void testRejectedStatus() {
-        // arrange & act
-        FIR rejectedFir = FIR.builder()
-                .firNumber("FIR-2024-020")
-                .userId(1L)
-                .category(FIR.Category.OTHER)
-                .title("Test")
-                .description("Test description")
-                .incidentDate(LocalDate.now())
-                .incidentLocation("Test location")
-                .status(FIR.Status.REJECTED)
-                .build();
+    void testStatusTransitions() {
+        fir.setStatus(FIR.Status.PENDING);
+        assertEquals(FIR.Status.PENDING, fir.getStatus());
 
-        // assert
-        assertEquals(FIR.Status.REJECTED, rejectedFir.getStatus());
+        fir.setStatus(FIR.Status.UNDER_INVESTIGATION);
+        assertEquals(FIR.Status.UNDER_INVESTIGATION, fir.getStatus());
+
+        fir.setStatus(FIR.Status.RESOLVED);
+        assertEquals(FIR.Status.RESOLVED, fir.getStatus());
+
+        fir.setStatus(FIR.Status.CLOSED);
+        assertEquals(FIR.Status.CLOSED, fir.getStatus());
+    }
+
+    @Test
+    void testPriorityChanges() {
+        fir.setPriority(FIR.Priority.LOW);
+        assertEquals(FIR.Priority.LOW, fir.getPriority());
+
+        fir.setPriority(FIR.Priority.HIGH);
+        assertEquals(FIR.Priority.HIGH, fir.getPriority());
+
+        fir.setPriority(FIR.Priority.URGENT);
+        assertEquals(FIR.Priority.URGENT, fir.getPriority());
     }
 }
