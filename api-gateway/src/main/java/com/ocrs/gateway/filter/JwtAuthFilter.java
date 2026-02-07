@@ -38,10 +38,27 @@ public class JwtAuthFilter extends AbstractGatewayFilterFactory<JwtAuthFilter.Co
         @Value("${jwt.secret}")
         private String jwtSecret;
 
+        /**
+         * Construct a JwtAuthFilter gateway filter factory tied to the nested Config class.
+         */
         public JwtAuthFilter() {
                 super(Config.class);
         }
 
+        /**
+         * Create a GatewayFilter that enforces JWT-based authentication for incoming requests and, on success,
+         * injects authenticated user information into downstream requests via headers.
+         *
+         * <p>The filter skips OPTIONS preflight requests, verifies the presence and "Bearer " format of the
+         * Authorization header, validates the token and extracts claims, optionally enforces a required role,
+         * and adds the headers X-User-Id, X-User-Email, and X-User-Role for downstream services. On failure the
+         * filter writes a structured JSON error response with an appropriate HTTP status and machine-readable errorCode.
+         *
+         * @param config filter configuration; if {@code config.getRequiredRole()} is set, the JWT must contain a
+         *               matching "role" claim (case-insensitive) or the request is rejected with 403 Forbidden.
+         * @return a GatewayFilter that performs JWT validation, role enforcement (when configured), header enrichment,
+         *         and structured error responses on failure.
+         */
         @Override
         public GatewayFilter apply(Config config) {
                 return (exchange, chain) -> {
@@ -125,11 +142,11 @@ public class JwtAuthFilter extends AbstractGatewayFilterFactory<JwtAuthFilter.Co
         }
 
         /**
-         * validate jwt token and extract claims in a single parse operation.
+         * Parse and verify the given JWT using the configured secret and return its claims.
          *
-         * @param token jwt token string
-         * @return claims object containing all token claims
-         * @throws jwtexception if token is invalid
+         * @param token the compact JWT string to verify and parse
+         * @return the token's claims payload
+         * @throws io.jsonwebtoken.JwtException if the token is invalid, expired, malformed, unsupported, or verification fails
          */
         private Claims validateAndExtractClaims(String token) {
                 SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
@@ -141,16 +158,15 @@ public class JwtAuthFilter extends AbstractGatewayFilterFactory<JwtAuthFilter.Co
         }
 
         /**
-         * build a structured json error response consistent with auth-service and
-         * backend-monolith.
+         * Builds a structured JSON error response matching auth-service and backend-monolith.
          *
-         * @param exchange  server web exchange
-         * @param message   human-readable error message
-         * @param status    http status code
-         * @param path      request path
-         * @param errorcode machine-readable error code
-         * @return mono<void> representing the error response
-         **/
+         * @param exchange  the server web exchange to write the response to
+         * @param message   a human-readable error message
+         * @param status    the HTTP status to set on the response
+         * @param path      the request path to include in the response payload
+         * @param errorCode a machine-readable error code to include in the response payload
+         * @return         a Mono that completes when the error response has been written
+         */
         private Mono<Void> buildErrorResponse(ServerWebExchange exchange, String message,
                         HttpStatus status, String path, String errorCode) {
                 ServerHttpResponse response = exchange.getResponse();
@@ -173,7 +189,13 @@ public class JwtAuthFilter extends AbstractGatewayFilterFactory<JwtAuthFilter.Co
                 return response.writeWith(Mono.just(buffer));
         }
 
-        // escape special characters in json string values.
+        /**
+         * Escape characters in a string so it can be safely included as a JSON string value.
+         *
+         * @param value the input string to escape; may be null
+         * @return the escaped string with backslashes, quotes, and common control characters replaced;
+         *         returns an empty string if {@code value} is null
+         */
         private String escapeJsonString(String value) {
                 if (value == null) {
                         return "";
@@ -192,10 +214,20 @@ public class JwtAuthFilter extends AbstractGatewayFilterFactory<JwtAuthFilter.Co
         public static class Config {
                 private String requiredRole;
 
+                /**
+                 * The role required to access routes protected by this filter.
+                 *
+                 * @return the required role name, or {@code null} if no role is configured
+                 */
                 public String getRequiredRole() {
                         return requiredRole;
                 }
 
+                /**
+                 * Set the role that a request's JWT must have to access the route.
+                 *
+                 * @param requiredRole the role name to enforce; if null or empty, no role requirement is applied
+                 */
                 public void setRequiredRole(String requiredRole) {
                         this.requiredRole = requiredRole;
                 }

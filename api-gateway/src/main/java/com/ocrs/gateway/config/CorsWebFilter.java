@@ -65,7 +65,15 @@ public class CorsWebFilter implements WebFilter {
                         "X-RateLimit-Limit",
                         "X-RateLimit-Reset");
 
-        private static final long MAX_AGE = 3600L; // 1 hour cache for preflight
+        private static final long MAX_AGE = 3600L; /**
+         * Apply CORS validation and response headers to the incoming exchange and short-circuit OPTIONS preflight requests.
+         *
+         * If the request has no Origin header this filter delegates to the next filter. If the Origin is not allowed the
+         * response is completed with HTTP 403. For allowed origins the appropriate CORS response headers are added; if the
+         * request method is OPTIONS the response is completed with HTTP 200, otherwise the filter chain continues.
+         *
+         * @return a completion signal indicating the filter has finished processing the exchange
+         */
 
         @Override
         @NonNull
@@ -103,8 +111,11 @@ public class CorsWebFilter implements WebFilter {
         }
 
         /**
-         * Check if the origin is in the allowed list.
-         * Supports wildcard patterns like http://localhost:*
+         * Determine whether the given Origin header is permitted by the configured allowed origins.
+         * Supports exact matches, wildcard '*' patterns, and wildcard port patterns such as "http://localhost:*".
+         *
+         * @param origin the Origin header value to check; may be null
+         * @return {@code true} if the origin matches any allowed origin pattern, {@code false} otherwise
          */
         private boolean isOriginAllowed(String origin) {
                 if (origin == null) {
@@ -151,7 +162,16 @@ public class CorsWebFilter implements WebFilter {
                 return false;
         }
  
-        //add necessary CORS headers to the response.
+        /**
+         * Populate the HTTP response with the CORS headers appropriate for the given origin.
+         *
+         * Sets Access-Control-Allow-Origin to the provided origin, enables credentials,
+         * configures allowed methods, allowed headers, exposed headers, and max age for preflight caching,
+         * and adds Vary headers to indicate the response varies by Origin and CORS request headers.
+         *
+         * @param response the server HTTP response to populate
+         * @param origin the request Origin value to echo in Access-Control-Allow-Origin
+         */
          
         private void addCorsHeaders(ServerHttpResponse response, String origin) {
                 HttpHeaders headers = response.getHeaders();

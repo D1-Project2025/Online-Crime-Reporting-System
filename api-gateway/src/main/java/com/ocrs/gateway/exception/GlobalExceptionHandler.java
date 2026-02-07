@@ -41,6 +41,13 @@ public class GlobalExceptionHandler implements ErrorWebExceptionHandler {
         private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
         private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
+        /**
+         * Maps the given exception to a structured JSON HTTP error response and writes it to the provided exchange.
+         *
+         * @param exchange the server web exchange to send the error response through
+         * @param ex the exception to map to an HTTP status, message, and error code
+         * @return a Mono that completes when the error response has been written to the response stream
+         */
         @Override
         @NonNull
         public Mono<Void> handle(@NonNull ServerWebExchange exchange, @NonNull Throwable ex) {
@@ -90,7 +97,14 @@ public class GlobalExceptionHandler implements ErrorWebExceptionHandler {
         }
 
         /**
-         * Build a structured JSON error response.
+         * Write a structured JSON error response to the given ServerWebExchange.
+         *
+         * @param exchange  the web exchange whose response will be populated
+         * @param message   the human-readable error message to include in the body
+         * @param status    the HTTP status to set on the response
+         * @param path      the request path to include in the response body
+         * @param errorCode a machine-readable error code to include in the response body
+         * @return a Mono that completes when the response body has been written
          */
         private Mono<Void> buildErrorResponse(ServerWebExchange exchange, String message,
                         HttpStatus status, String path, String errorCode) {
@@ -115,7 +129,10 @@ public class GlobalExceptionHandler implements ErrorWebExceptionHandler {
         }
 
         /**
-         * Get default message for HTTP status code.
+         * Provide a human-readable default message for common HTTP statuses.
+         *
+         * @param status the HTTP status to map to a default message
+         * @return a default message for the given status; falls back to the status's reason phrase if no specific message is defined
          */
         private String getDefaultMessage(HttpStatus status) {
                 return switch (status) {
@@ -131,7 +148,10 @@ public class GlobalExceptionHandler implements ErrorWebExceptionHandler {
         }
 
         /**
-         * Get machine-readable error code for HTTP status.
+         * Maps an HTTP status to a machine-readable error code.
+         *
+         * @param status the HTTP status to map
+         * @return the corresponding machine-readable error code (for example "NOT_FOUND", "RATE_LIMITED")
          */
         private String getErrorCodeForStatus(HttpStatus status) {
                 return switch (status) {
@@ -148,7 +168,10 @@ public class GlobalExceptionHandler implements ErrorWebExceptionHandler {
         }
 
         /**
-         * Escape special characters in JSON string values.
+         * Produce a JSON-safe string by escaping characters that would break JSON string values.
+         *
+         * @param value the input string to escape; may be null
+         * @return the escaped string suitable for inclusion in JSON string values; returns an empty string if {@code value} is null
          */
         private String escapeJsonString(String value) {
                 if (value == null) {
