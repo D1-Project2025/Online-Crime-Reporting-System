@@ -43,6 +43,17 @@ public class GatewayAuthFilter extends OncePerRequestFilter {
         @Value("${gateway.shared-secret:}")
         private String expectedSecret;
 
+        /**
+         * Processes API-gateway authentication headers: optionally validates the gateway secret,
+         * extracts user id/email/role from headers to populate the Spring Security context and
+         * request attributes, or rejects the request with 403 when the configured gateway secret is missing or invalid.
+         *
+         * <p>Skips processing for actuator and health endpoints. When valid user headers are present,
+         * sets an authenticated UsernamePasswordAuthenticationToken (principal = email, ROLE_ prefixed authority)
+         * in the SecurityContext and adds request attributes "userId" (Long), "userEmail" (String),
+         * and "userRole" (String) for controller access. On gateway secret mismatch responds with
+         * 403 and a JSON body {"success":false,"message":"Direct access forbidden"}. Logs parse and processing errors.</p>
+         */
         @Override
         protected void doFilterInternal(HttpServletRequest request,
                         HttpServletResponse response,

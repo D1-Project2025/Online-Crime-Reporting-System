@@ -9,6 +9,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class HealthController {
 
+        /**
+         * Reports that the backend service is running.
+         *
+         * @return the HTTP 200 response with body "Backend Monolith is running"
+         */
         @GetMapping("/health")
         public ResponseEntity<String> health() {
                 return ResponseEntity.ok("Backend Monolith is running");

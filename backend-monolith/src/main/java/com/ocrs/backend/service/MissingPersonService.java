@@ -39,7 +39,10 @@ public class MissingPersonService {
         private ExternalServiceClient externalServiceClient;
 
         /**
-         * Helper method to get user's email from Auth service via Feign
+         * Retrieve a user's email address from the authentication service.
+         *
+         * @param userId the ID of the user to look up
+         * @return the user's email address if found, otherwise {@code null}
          */
         private String getUserEmail(Long userId) {
                 if (userId == null) {
@@ -57,7 +60,10 @@ public class MissingPersonService {
         }
 
         /**
-         * Helper method to get authority name from Auth service via Feign
+         * Resolve an authority's display name from the Auth service.
+         *
+         * @param authorityId the authority's ID to resolve
+         * @return the authority's full name; returns "Authority #<id>" if the remote lookup fails; returns `null` if `authorityId` is `null`
          */
         private String getAuthorityName(Long authorityId) {
                 if (authorityId == null) {
@@ -75,7 +81,13 @@ public class MissingPersonService {
         }
 
         /**
-         * Helper method to check if authority exists via Feign
+         * Check whether an authority with the given ID exists.
+         *
+         * If `authorityId` is null, the method returns `false`. Failures while resolving
+         * the authority (for example, communication errors) also result in `false`.
+         *
+         * @param authorityId the ID of the authority to verify; may be null
+         * @return `true` if an authority with the given ID exists, `false` otherwise
          */
         private boolean authorityExists(Long authorityId) {
                 if (authorityId == null) {
@@ -90,6 +102,18 @@ public class MissingPersonService {
                 }
         }
 
+        /**
+         * Create and persist a new missing-person report, optionally auto-assigning it to the least-loaded authority,
+         * then notify external services and log the filing event.
+         *
+         * <p>The created report is initialized with status PENDING and a generated case number. If an authority is
+         * available it will be assigned; notifications are sent to the user and an event is logged. On failure an
+         * error response is returned.</p>
+         *
+         * @param userId the identifier of the user filing the report
+         * @param request the details of the missing person to record
+         * @return an ApiResponse containing the created MissingPerson on success, or an error message on failure
+         */
         @Transactional
         public ApiResponse<MissingPerson> fileReport(Long userId, MissingPersonRequest request) {
                 try {
@@ -165,8 +189,9 @@ public class MissingPersonService {
         }
 
         /**
-         * Find the authority with the least number of active cases.
-         * Uses load balancing to distribute reports evenly across authorities.
+         * Selects the active authority with the fewest active missing-person cases.
+         *
+         * @return the authority id with the fewest active cases, or `null` if no active authorities are available or an error occurs
          */
         private Long findLeastLoadedAuthority() {
                 try {
@@ -197,30 +222,73 @@ public class MissingPersonService {
                 }
         }
 
+        /**
+         * Retrieve all missing person reports filed by the specified user.
+         *
+         * @param userId the ID of the reporting user
+         * @return a list of MissingPerson reports submitted by the given user
+         */
         public List<MissingPerson> getReportsByUser(Long userId) {
                 return missingPersonRepository.findByUserId(userId);
         }
 
+        /**
+         * Retrieve all missing person reports assigned to a specific authority.
+         *
+         * @param authorityId the authority's database identifier
+         * @return a list of MissingPerson entities assigned to the specified authority, or an empty list if none are found
+         */
         public List<MissingPerson> getReportsByAuthority(Long authorityId) {
                 return missingPersonRepository.findByAuthorityId(authorityId);
         }
 
+        /**
+         * Retrieve a paginated list of missing person reports assigned to a specific authority.
+         *
+         * @param authorityId the ID of the authority whose assigned reports should be returned
+         * @param pageable    pagination and sorting information
+         * @return a page of MissingPerson reports assigned to the specified authority
+         */
         public Page<MissingPerson> getReportsByAuthorityPaged(Long authorityId, Pageable pageable) {
                 return missingPersonRepository.findByAuthorityId(authorityId, pageable);
         }
 
+        /**
+         * Retrieve a missing-person report by its database ID.
+         *
+         * @param id the database identifier of the missing-person report
+         * @return an ApiResponse containing the report when found, or an error response with message "Report not found"
+         */
         public ApiResponse<MissingPerson> getReportById(Long id) {
                 return missingPersonRepository.findById(id)
                                 .map(mp -> ApiResponse.success("Report found", mp))
                                 .orElse(ApiResponse.error("Report not found"));
         }
 
+        /**
+         * Retrieve a missing-person report by its case number.
+         *
+         * @return An ApiResponse containing the matching MissingPerson when found; an error ApiResponse with message "Report not found" otherwise.
+         */
         public ApiResponse<MissingPerson> getReportByCaseNumber(String caseNumber) {
                 return missingPersonRepository.findByCaseNumber(caseNumber)
                                 .map(mp -> ApiResponse.success("Report found", mp))
                                 .orElse(ApiResponse.error("Report not found"));
         }
 
+        /**
+         * Update the status of a missing-person report and record the corresponding update.
+         *
+         * <p>Validates the report exists and that the caller (authorityId) is authorized to modify it,
+         * prevents modifications when the report is CLOSED, applies a new status from the request when present,
+         * records an Update entry, notifies the report owner, and logs the change.</p>
+         *
+         * @param reportId    the database ID of the missing-person report to update
+         * @param authorityId the authority performing the update
+         * @param request     details of the update (may include a new status, update type, and comment)
+         * @return            an ApiResponse containing the updated MissingPerson on success, or an error message when
+         *                    the report is not found, the caller is not authorized, or the report cannot be modified
+         */
         @Transactional
         public ApiResponse<MissingPerson> updateReportStatus(Long reportId, Long authorityId, UpdateRequest request) {
                 MissingPerson report = missingPersonRepository.findById(reportId).orElse(null);
@@ -288,19 +356,51 @@ public class MissingPersonService {
                 return ApiResponse.success("Report updated successfully", report);
         }
 
+        /**
+         * Retrieve updates for a specific missing person report in reverse chronological order.
+         *
+         * @param reportId the database ID of the missing person report
+         * @return a list of Update entities for the report ordered by creation time descending
+         */
         public List<Update> getReportUpdates(Long reportId) {
                 return updateRepository.findByMissingPersonIdOrderByCreatedAtDesc(reportId);
         }
 
+        /**
+         * Searches missing-person reports assigned to a specific authority using optional text and status filters and returns paginated results.
+         *
+         * @param authorityId the authority's database id to filter reports by; may be null to ignore authority filtering
+         * @param search      optional text to match against report fields (e.g., name, case number); may be null or empty
+         * @param status      optional status to filter reports by; may be null to include all statuses
+         * @param pageable    pagination and sorting information
+         * @return            a page of MissingPerson reports that match the provided filters
+         */
         public Page<MissingPerson> searchReportsByAuthority(Long authorityId, String search,
                         MissingPerson.MissingStatus status, Pageable pageable) {
                 return missingPersonRepository.searchByAuthority(authorityId, search, status, pageable);
         }
 
+        /**
+         * Retrieve all missing person reports.
+         *
+         * @return a list containing every stored MissingPerson report
+         */
         public List<MissingPerson> getAllReports() {
                 return missingPersonRepository.findAll();
         }
 
+        /**
+         * Reassigns a missing-person report to a different authority, records the reassignment, and notifies interested parties.
+         *
+         * <p>This updates the report's assigned authority, creates an Update entry describing the reassignment, sends a
+         * notification to the report owner and external systems, and emits an event for audit/logging.</p>
+         *
+         * @param reportId      the database ID of the missing-person report to reassign
+         * @param newAuthorityId the ID of the authority to assign the report to
+         * @return               an ApiResponse containing the updated MissingPerson on success; an error ApiResponse if the
+         *                       report does not exist, the new authority does not exist, or the report is already assigned to
+         *                       the specified authority
+         */
         @Transactional
         public ApiResponse<MissingPerson> reassignReport(Long reportId, Long newAuthorityId) {
                 MissingPerson report = missingPersonRepository.findById(reportId).orElse(null);

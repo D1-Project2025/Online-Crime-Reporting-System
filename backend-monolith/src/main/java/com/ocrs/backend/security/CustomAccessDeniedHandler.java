@@ -28,6 +28,18 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         private static final Logger logger = LoggerFactory.getLogger(CustomAccessDeniedHandler.class);
         private final ObjectMapper objectMapper;
 
+        /**
+         * Sends a standardized JSON 403 Forbidden response when an access-denied event occurs.
+         *
+         * The response body contains `success` (false), a fixed `message` ("Access Denied: Insufficient permissions"),
+         * the request `path`, and a `timestamp`. The handler also logs the denied request and exception message.
+         *
+         * @param request the HTTP request that triggered the access denial
+         * @param response the HTTP response used to write the JSON error payload
+         * @param accessDeniedException the exception that caused the access denial
+         * @throws IOException if an I/O error occurs while writing the response
+         * @throws ServletException if a servlet error occurs while handling the request
+         */
         @Override
         public void handle(HttpServletRequest request, HttpServletResponse response,
                         AccessDeniedException accessDeniedException) throws IOException, ServletException {

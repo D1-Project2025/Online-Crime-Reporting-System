@@ -47,7 +47,10 @@ public class AuthorityController {
         // ==================== Analytics ====================
 
         /**
-         * Get analytics for the current authority's assigned cases.
+         * Retrieve analytics for the current authority's assigned cases.
+         *
+         * @param httpRequest the HTTP request containing the current authority's ID in the "userId" attribute
+         * @return an AuthorityAnalyticsResponse containing aggregated metrics for the authority's assigned cases
          */
         @GetMapping("/analytics")
         @PreAuthorize("hasRole('AUTHORITY')")
@@ -59,7 +62,10 @@ public class AuthorityController {
         // ==================== FIR Endpoints ====================
 
         /**
-         * Get all FIRs assigned to the current authority.
+         * Retrieve FIRs assigned to the current authority.
+         *
+         * @param httpRequest HTTP request containing the current authority's "userId" request attribute
+         * @return the list of FIRs assigned to the authority
          */
         @GetMapping("/firs")
         @PreAuthorize("hasRole('AUTHORITY')")
@@ -69,8 +75,14 @@ public class AuthorityController {
         }
 
         /**
-         * Get paginated list of FIRs assigned to the current authority.
-         * Supports sorting by various fields.
+         * Retrieve a paginated page of FIRs assigned to the current authority.
+         *
+         * @param httpRequest the current HTTP request; the authority's ID is read from the request attribute "userId"
+         * @param page        zero-based page index
+         * @param size        number of items per page
+         * @param sortBy      field name to sort by
+         * @param sortDir     sort direction, either "asc" or "desc"
+         * @return            a page of FIRs assigned to the authority
          */
         @GetMapping("/firs/paged")
         @PreAuthorize("hasRole('AUTHORITY')")
@@ -88,8 +100,18 @@ public class AuthorityController {
         }
 
         /**
-         * Search and filter FIRs assigned to the current authority.
-         * Supports filtering by category, priority, status, and text search.
+         * Searches FIRs assigned to the current authority using optional text and enum filters and returns a paginated result.
+         *
+         * @param httpRequest the HTTP servlet request containing the current authority's "userId" attribute
+         * @param search      optional text to match against FIR fields (e.g., complainant, description)
+         * @param category    optional FIR category to filter by
+         * @param priority    optional FIR priority to filter by
+         * @param status      optional FIR status to filter by
+         * @param page        zero-based page index
+         * @param size        number of items per page
+         * @param sortBy      field name to sort by
+         * @param sortDir     sort direction, either "asc" or "desc"
+         * @return            a page of FIRs assigned to the authority that match the provided filters
          */
         @GetMapping("/firs/search")
         @PreAuthorize("hasRole('AUTHORITY')")
@@ -112,7 +134,10 @@ public class AuthorityController {
         }
 
         /**
-         * Get a specific FIR by ID.
+         * Retrieve a specific FIR by its identifier.
+         *
+         * @param id the FIR's identifier
+         * @return an ApiResponse containing the FIR when found and operation metadata indicating success or failure
          */
         @GetMapping("/fir/{id}")
         @PreAuthorize("hasRole('AUTHORITY')")
@@ -122,7 +147,12 @@ public class AuthorityController {
 
         /**
          * Update the status of a FIR and add an update note.
-         * Only the assigned authority can update a FIR.
+         *
+         * Only the authority assigned to the FIR may perform this update.
+         *
+         * @param firId  the ID of the FIR to update
+         * @param request  the update details, including the new status and an optional note
+         * @return an ApiResponse containing the updated FIR when the update succeeds, or error details otherwise
          */
         @PutMapping("/fir/{firId}/update")
         @PreAuthorize("hasRole('AUTHORITY')")
@@ -136,7 +166,10 @@ public class AuthorityController {
         }
 
         /**
-         * Get all status updates for a specific FIR.
+         * Retrieves status updates for the specified FIR.
+         *
+         * @param firId the identifier of the FIR
+         * @return a list of updates for the specified FIR
          */
         @GetMapping("/fir/{firId}/updates")
         @PreAuthorize("hasRole('AUTHORITY')")
@@ -147,7 +180,9 @@ public class AuthorityController {
         // ==================== Missing Person Endpoints ====================
 
         /**
-         * Get all Missing Person reports assigned to the current authority.
+         * Retrieve missing person reports assigned to the current authority.
+         *
+         * @return a list of MissingPerson reports assigned to the authenticated authority
          */
         @GetMapping("/missing-reports")
         @PreAuthorize("hasRole('AUTHORITY')")
@@ -157,8 +192,14 @@ public class AuthorityController {
         }
 
         /**
-         * Get paginated list of Missing Person reports assigned to the current
-         * authority.
+         * Retrieve a page of Missing Person reports assigned to the current authority.
+         *
+         * @param httpRequest the HTTP request whose "userId" attribute provides the current authority's ID
+         * @param page        zero-based page index
+         * @param size        number of items per page
+         * @param sortBy      field name to sort by
+         * @param sortDir     sort direction, either "asc" or "desc"
+         * @return            a page of MissingPerson reports assigned to the current authority
          */
         @GetMapping("/missing-reports/paged")
         @PreAuthorize("hasRole('AUTHORITY')")
@@ -176,7 +217,15 @@ public class AuthorityController {
         }
 
         /**
-         * Search and filter Missing Person reports assigned to the current authority.
+         * Search and filter missing-person reports assigned to the current authority.
+         *
+         * @param search  optional text to search within matching report fields (e.g., name, description)
+         * @param status  optional missing-person report status to filter by
+         * @param page    zero-based page index
+         * @param size    number of items per page
+         * @param sortBy  field name to sort the results by
+         * @param sortDir sort direction, either "asc" or "desc"
+         * @return        a page of MissingPerson reports matching the provided filters for the current authority
          */
         @GetMapping("/missing-reports/search")
         @PreAuthorize("hasRole('AUTHORITY')")
@@ -197,7 +246,10 @@ public class AuthorityController {
         }
 
         /**
-         * Get a specific Missing Person report by ID.
+         * Retrieve a Missing Person report by its identifier.
+         *
+         * @param id the missing person report ID to retrieve
+         * @return an ApiResponse containing the requested MissingPerson or error details
          */
         @GetMapping("/missing/{id}")
         @PreAuthorize("hasRole('AUTHORITY')")
@@ -206,8 +258,13 @@ public class AuthorityController {
         }
 
         /**
-         * Update the status of a Missing Person report and add an update note.
-         * Only the assigned authority can update a report.
+         * Update a missing person report's status and append an update note.
+         *
+         * Only the authority assigned to the report may perform this update.
+         *
+         * @param reportId the identifier of the missing person report to update
+         * @param request  the update payload containing the new status and an optional note
+         * @return         an ApiResponse containing the updated MissingPerson when successful, or an error description otherwise
          */
         @PutMapping("/missing/{reportId}/update")
         @PreAuthorize("hasRole('AUTHORITY')")
@@ -222,7 +279,10 @@ public class AuthorityController {
         }
 
         /**
-         * Get all status updates for a specific Missing Person report.
+         * Retrieves status updates for the specified missing person report.
+         *
+         * @param reportId the ID of the missing person report
+         * @return a list of Update entries for the report
          */
         @GetMapping("/missing/{reportId}/updates")
         @PreAuthorize("hasRole('AUTHORITY')")

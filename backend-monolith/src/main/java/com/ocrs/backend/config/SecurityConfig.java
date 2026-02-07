@@ -43,7 +43,9 @@ public class SecurityConfig {
         private List<String> allowedMethods;
 
         /**
-         * BCrypt password encoder with strength 12 for secure password hashing.
+         * Provides a BCrypt PasswordEncoder configured with strength 12 for hashing passwords.
+         *
+         * @return a BCryptPasswordEncoder configured with strength 12
          */
         @Bean
         public PasswordEncoder passwordEncoder() {
@@ -51,7 +53,16 @@ public class SecurityConfig {
         }
 
         /**
-         * Main security filter chain configuration.
+         * Configure and build the application's main HTTP security filter chain.
+         *
+         * Configures CORS, disables CSRF, enforces stateless sessions, wires custom
+         * authentication and access-denied handlers, registers authorization rules for
+         * health, actuator, user/authority/admin endpoints, inserts the JWT authentication
+         * filter, and sets selected HTTP headers.
+         *
+         * @param http the HttpSecurity builder used to configure the security filter chain
+         * @return the configured SecurityFilterChain
+         * @throws Exception if the security filter chain cannot be built
          */
         @Bean
         public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -84,7 +95,9 @@ public class SecurityConfig {
         }
 
         /**
-         * CORS configuration with externalized allowed origins.
+         * Creates a CORS configuration using the configured allowed origins and methods.
+         *
+         * @return a CorsConfigurationSource that registers the CORS settings for all paths (/**)
          */
         @Bean
         public CorsConfigurationSource corsConfigurationSource() {
