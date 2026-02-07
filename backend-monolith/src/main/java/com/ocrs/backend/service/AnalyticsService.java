@@ -33,6 +33,16 @@ public class AnalyticsService {
         @Autowired
         private AuthServiceClient authServiceClient;
 
+        /**
+         * Assembles overall analytics for FIRs, missing persons, and authorities.
+         *
+         * @return an AnalyticsResponse containing aggregated metrics:
+         *         total, pending, and resolved FIR counts; total and found missing person counts;
+         *         active authority count; FIRs grouped by category and by status; missing persons grouped by status;
+         *         top authorities mapped to their FIR counts (authority names resolved); average resolution time in days
+         *         (rounded to one decimal); and FIR growth rate as a percentage comparing the last 30 days to the previous 30 days
+         *         (rounded to one decimal).
+         */
         public AnalyticsResponse getAnalytics() {
                 // FIR counts
                 Long totalFirs = firRepository.count();
@@ -117,7 +127,9 @@ public class AnalyticsService {
         }
 
         /**
-         * Get active authority count from Auth service via Feign
+         * Retrieve the number of active authorities from the Auth service.
+         *
+         * @return the count of active authorities, or 0 if the Auth service call fails or returns no data
          */
         private Long getActiveAuthorityCount() {
                 try {
@@ -132,7 +144,10 @@ public class AnalyticsService {
         }
 
         /**
-         * Get authority name by ID from Auth service via Feign
+         * Resolve an authority's full name by ID using the Auth service.
+         *
+         * @param authorityId the ID of the authority to look up
+         * @return the authority's full name if available, or "Officer #<id>" if not found or on error
          */
         private String getAuthorityName(Long authorityId) {
                 try {
@@ -146,6 +161,19 @@ public class AnalyticsService {
                 return "Officer #" + authorityId;
         }
 
+        /**
+         * Builds analytics for a specific authority identified by its ID.
+         *
+         * @param authorityId the authority's database identifier
+         * @return an AuthorityAnalyticsResponse containing:
+         *         - assignedFIRs: total FIRs assigned to the authority
+         *         - pendingFIRs: assigned FIRs with status PENDING
+         *         - resolvedFIRs: assigned FIRs with status RESOLVED
+         *         - assignedMissingReports: total missing-person reports assigned to the authority
+         *         - foundMissingReports: assigned missing-person reports with status FOUND
+         *         - firsByStatus: map of FIR status to counts for this authority
+         *         - missingByStatus: map of missing-person status to counts for this authority
+         */
         public AuthorityAnalyticsResponse getAuthorityAnalytics(Long authorityId) {
                 Long assignedFIRs = firRepository.countByAuthorityId(authorityId);
                 Long pendingFIRs = firRepository.countByAuthorityIdAndStatus(authorityId, FIR.Status.PENDING);

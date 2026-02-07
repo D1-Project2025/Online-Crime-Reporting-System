@@ -68,12 +68,20 @@ public class MissingPerson {
         @Column(name = "updated_at")
         private LocalDateTime updatedAt;
 
+        /**
+         * Initializes the entity's timestamps before it is persisted.
+         *
+         * This JPA lifecycle callback sets both {@code createdAt} and {@code updatedAt} to the current {@link java.time.LocalDateTime} when the entity is first stored.
+         */
         @PrePersist
         protected void onCreate() {
                 createdAt = LocalDateTime.now();
                 updatedAt = LocalDateTime.now();
         }
 
+        /**
+         * Sets the entity's updatedAt timestamp to the current date and time before the entity is updated.
+         */
         @PreUpdate
         protected void onUpdate() {
                 updatedAt = LocalDateTime.now();

@@ -63,12 +63,22 @@ public class FIR {
         @Column(name = "updated_at")
         private LocalDateTime updatedAt;
 
+        /**
+         * Initialize audit timestamps immediately before the entity is persisted.
+         *
+         * Sets both {@code createdAt} and {@code updatedAt} to the current local date-time.
+         */
         @PrePersist
         protected void onCreate() {
                 createdAt = LocalDateTime.now();
                 updatedAt = LocalDateTime.now();
         }
 
+        /**
+         * Update the entity's updatedAt timestamp to the current time before a database update.
+         *
+         * Invoked by JPA prior to an update operation to record when the entity was last modified.
+         */
         @PreUpdate
         protected void onUpdate() {
                 updatedAt = LocalDateTime.now();

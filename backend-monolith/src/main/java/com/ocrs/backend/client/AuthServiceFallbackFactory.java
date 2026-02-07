@@ -19,6 +19,17 @@ public class AuthServiceFallbackFactory implements FallbackFactory<AuthServiceCl
 
         private static final Logger logger = LoggerFactory.getLogger(AuthServiceFallbackFactory.class);
 
+        /**
+         * Create a fallback AuthServiceClient used when the Auth service is unavailable.
+         *
+         * <p>The returned client logs fallback usage and provides safe fallback responses:
+         * most methods return an error ApiResponse with an unavailability message, while
+         * getAuthorityById returns a success ApiResponse containing a minimal AuthorityDTO
+         * populated with the provided id and limited fields.</p>
+         *
+         * @param cause the throwable that caused the fallback (used for logging)
+         * @return an AuthServiceClient that supplies fallback ApiResponse values for each API method
+         */
         @Override
         public AuthServiceClient create(Throwable cause) {
                 logger.error("Auth service is unavailable. Cause: {}", cause.getMessage());

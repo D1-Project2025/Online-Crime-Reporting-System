@@ -19,6 +19,11 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @EnableFeignClients
 public class BackendMonolithApplication {
 
+        /**
+         * Bootstraps and starts the Spring Boot application, initializing the application context.
+         *
+         * @param args command-line arguments passed to the application
+         */
         public static void main(String[] args) {
                 SpringApplication.run(BackendMonolithApplication.class, args);
         }
